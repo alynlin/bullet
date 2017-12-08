@@ -1,0 +1,146 @@
+<xsd:schema xmlns="http://www.unique.com/schema/bullet"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:beans="http://www.springframework.org/schema/beans"
+            xmlns:tool="http://www.springframework.org/schema/tool"
+            targetNamespace="http://www.unique.com/schema/bullet"
+            elementFormDefault="qualified" attributeFormDefault="unqualified"
+            version="1.0.0">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
+    <xsd:import namespace="http://www.springframework.org/schema/beans"/>
+    <xsd:import namespace="http://www.springframework.org/schema/tool"/>
+
+    <xsd:element name="publish" type="publishType"/>
+    <xsd:element name="protocol" type="protocolType"/>
+
+    <xsd:complexType name="protocolType">
+        <xsd:attribute name="id" type="xsd:ID">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[ The unique identifier for a bean. ]]></xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="name" type="xsd:string" use="optional">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[ The protocol name. ]]></xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="addresses" type="xsd:string" use="optional">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[
+	List of addresses; e.g. host1:9876,host2:9876 - overrides host/port if supplied.
+					]]></xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="host" type="xsd:string" use="optional">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[
+	Hostname to connect to broker.  Default is "localhost".
+					]]></xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="port" type="xsd:string" use="optional">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[
+	Port number to connect to broker.  Default is 5672.
+					]]></xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="username" type="xsd:string" use="optional">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[
+	Username to connect to broker.  Default is "guest".
+					]]></xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="password" type="xsd:string" use="optional">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[
+	Password to connect to broker.  Default is "guest".
+					]]></xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="codec" type="xsd:string" use="optional">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[ The protocol codec. ]]></xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="sysgroup" type="xsd:string" use="required">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[ The protocol group. ]]></xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
+
+    <xsd:complexType name="publishType">
+        <xsd:complexContent>
+            <xsd:extension base="beans:identifiedType">
+                <xsd:attribute name="interface" type="xsd:token" use="required">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <tool:annotation>
+                                <tool:expected-type type="java.lang.Class"/>
+                            </tool:annotation>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:attribute>
+                <xsd:attribute name="ttl" type="xsd:int" use="optional"/>
+                <xsd:attribute name="routingKey" type="xsd:string"
+                               use="optional"/>
+                <xsd:attribute name="protocol" type="xsd:string" use="optional"/>
+                <xsd:attribute name="destination" type="xsd:string" use="required"/>
+                <xsd:attribute name="timeout" type="xsd:string" use="optional"/>
+                <xsd:attribute name="connection" type="xsd:string"
+                               use="required"/>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+
+    <xsd:element name="listener-container">
+        <xsd:complexType>
+            <xsd:complexContent>
+                <xsd:extension base="listenerContainerBaseType">
+                    <xsd:sequence>
+                        <xsd:element name="listener" type="listenerType" minOccurs="0" maxOccurs="unbounded"/>
+                    </xsd:sequence>
+                    <xsd:attribute name="connection-factory" type="xsd:string"/>
+                    <xsd:attribute name="message-model" use="required">
+                        <xsd:simpleType>
+                            <xsd:restriction base="xsd:string">
+                                <xsd:enumeration value="CLUSTERING"/>
+                                <xsd:enumeration value="BROADCASTING"/>
+                            </xsd:restriction>
+                        </xsd:simpleType>
+                    </xsd:attribute>
+                    <xsd:attribute name="group" type="xsd:string" use="required"/>
+                </xsd:extension>
+            </xsd:complexContent>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:complexType name="listenerType">
+        <xsd:attribute name="id" type="xsd:string">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[The unique identifier for this listener.]]></xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="interface" type="xsd:string" use="required"></xsd:attribute>
+
+        <xsd:attribute name="ref" type="xsd:string" use="required">
+            <xsd:annotation>
+                <xsd:appinfo>
+                    <tool:annotation kind="ref"/>
+                </xsd:appinfo>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="destination" type="xsd:string" use="required"/>
+
+    </xsd:complexType>
+
+    <xsd:complexType name="listenerContainerBaseType">
+        <xsd:attribute name="id" type="xsd:string">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[Optional bean id for the container.]]></xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
+
+</xsd:schema>

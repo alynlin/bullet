@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:bullet="http://www.unique.com/schema/bullet"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
+           http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd 
+           http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd 
+           http://www.unique.com/schema/bullet http://www.unique.com/schema/bullet/bullet-1.0.xsd">
+    <bean id="propertyConfigurer"
+          class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="location">
+            <value>classpath:rocket.properties</value>
+        </property>
+        <property name="ignoreUnresolvablePlaceholders" value="true"/>
+    </bean>
+    <bullet:protocol id="rocket" sysgroup="inf_bullet_group" addresses="192.168.55.66:9876" />
+
+    <bullet:publish id="service" interface="com.unique.bullet.service.IService" destination="inf_bullet_test" connection="rocket"/>
+
+
+    <!--<bullet:listener-container message-model="CLUSTERING" group="inf_bullet_group_clustering">
+        <bullet:listener interface="" ref="" destination="inf_bullet_test"/>
+        <bullet:listener interface="" ref="" destination="inf_bullet_test"/>
+    </bullet:listener-container>-->
+
+
+
+
+</beans>
