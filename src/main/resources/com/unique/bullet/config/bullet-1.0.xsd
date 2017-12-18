@@ -10,6 +10,7 @@
 
     <xsd:element name="publish" type="publishType"/>
     <xsd:element name="protocol" type="protocolType"/>
+    <xsd:element name="listener" type="listenerType"/>
 
     <xsd:complexType name="protocolType">
         <xsd:attribute name="id" type="xsd:ID">
@@ -57,21 +58,33 @@
 					]]></xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
-        <xsd:attribute name="codec" type="xsd:string" use="optional">
-            <xsd:annotation>
-                <xsd:documentation><![CDATA[ The protocol codec. ]]></xsd:documentation>
-            </xsd:annotation>
-        </xsd:attribute>
         <xsd:attribute name="sysgroup" type="xsd:string" use="required">
             <xsd:annotation>
                 <xsd:documentation><![CDATA[ The protocol group. ]]></xsd:documentation>
             </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="sendMsgTimeout" use="optional" type="xsd:int"/>
+        <xsd:attribute name="permits-size" use="optional">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:int">
+                    <xsd:minInclusive value="1" />
+                    <xsd:maxInclusive value="65535"/>
+                </xsd:restriction>
+            </xsd:simpleType>
         </xsd:attribute>
     </xsd:complexType>
 
     <xsd:complexType name="publishType">
         <xsd:complexContent>
             <xsd:extension base="beans:identifiedType">
+                <xsd:sequence maxOccurs="1" minOccurs="0">
+                    <xsd:element name="filter-prop" type="beans:mapType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation><![CDATA[the message property value.]]></xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+
                 <xsd:attribute name="interface" type="xsd:token" use="required">
                     <xsd:annotation>
                         <xsd:appinfo>
@@ -81,14 +94,45 @@
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:attribute>
-                <xsd:attribute name="ttl" type="xsd:int" use="optional"/>
+                <xsd:attribute name="ttl" type="xsd:long" use="optional" default="-1"/>
                 <xsd:attribute name="routingKey" type="xsd:string"
                                use="optional"/>
                 <xsd:attribute name="protocol" type="xsd:string" use="optional"/>
                 <xsd:attribute name="destination" type="xsd:string" use="required"/>
                 <xsd:attribute name="timeout" type="xsd:string" use="optional"/>
-                <xsd:attribute name="connection" type="xsd:string"
-                               use="required"/>
+                <xsd:attribute name="connection" type="xsd:string" use="required"/>
+                <xsd:attribute name="codec" use="optional">
+                    <xsd:simpleType>
+                        <xsd:restriction base="xsd:string">
+                            <xsd:enumeration value="jdk"/>
+                            <xsd:enumeration value="fst"/>
+                            <xsd:enumeration value="hessian"/>
+                        </xsd:restriction>
+                    </xsd:simpleType>
+                </xsd:attribute>
+                <xsd:attribute name="send-mode" use="optional">
+                    <xsd:simpleType>
+                        <xsd:restriction base="xsd:string">
+                            <xsd:enumeration value="SYNC"/>
+                            <xsd:enumeration value="ASYNC"/>
+                            <xsd:enumeration value="ONEWAY"/>
+                        </xsd:restriction>
+                    </xsd:simpleType>
+                </xsd:attribute>
+                <xsd:attribute name="delayTimeLevel" use="optional" default="0" type="xsd:int">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            <![CDATA[messageDelayLevel=1s 5s 10s 30s 1m 2m 3m 4m 5m 6m 7m 8m 9m 10m 20m 30m 1h 2h;delayTimeLevel=3,表示延时10s]]>
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+                <xsd:attribute name="sendCallback" use="optional" type="xsd:string">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            <![CDATA[当send-mode=ASYNC有效，用于通知消息发送状态]]>
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
@@ -111,6 +155,22 @@
                         </xsd:simpleType>
                     </xsd:attribute>
                     <xsd:attribute name="group" type="xsd:string" use="required"/>
+                    <xsd:attribute name="addresses" type="xsd:string" use="required">
+                        <xsd:annotation>
+                            <xsd:documentation><![CDATA[List of addresses; e.g. host1:9876,host2:9876 - overrides host/port if supplied.]]></xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:attribute>
+                    <xsd:attribute name="maxReconsumeTimes" use="optional">
+                        <xsd:simpleType>
+                            <xsd:annotation>
+                                <xsd:documentation><![CDATA[If messages are re-consumed more than {@link #maxReconsumeTimes} before success, it's be directed to a deletion queue waiting]]></xsd:documentation>
+                            </xsd:annotation>
+                            <xsd:restriction base="xsd:int">
+                                <xsd:minInclusive value="0" />
+                                <xsd:maxInclusive value="16"/>
+                            </xsd:restriction>
+                        </xsd:simpleType>
+                    </xsd:attribute>
                 </xsd:extension>
             </xsd:complexContent>
         </xsd:complexType>
@@ -122,7 +182,7 @@
                 <xsd:documentation><![CDATA[The unique identifier for this listener.]]></xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
-        <xsd:attribute name="interface" type="xsd:string" use="required"></xsd:attribute>
+        <xsd:attribute name="interface" type="xsd:string" use="required"/>
 
         <xsd:attribute name="ref" type="xsd:string" use="required">
             <xsd:annotation>
@@ -132,7 +192,8 @@
             </xsd:annotation>
         </xsd:attribute>
         <xsd:attribute name="destination" type="xsd:string" use="required"/>
-
+        <xsd:attribute name="routingKey" type="xsd:string" use="optional"/>
+        <xsd:attribute name="selector" type="xsd:string" use="optional"/>
     </xsd:complexType>
 
     <xsd:complexType name="listenerContainerBaseType">

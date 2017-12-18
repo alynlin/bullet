@@ -1,5 +1,8 @@
 package com.unique.bullet.exception;
 
+/**
+ * bullet exception
+ */
 public class BulletException extends RuntimeException {
     private static final long serialVersionUID = 1L;
 

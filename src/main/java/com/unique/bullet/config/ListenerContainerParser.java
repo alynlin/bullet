@@ -1,134 +1,132 @@
 package com.unique.bullet.config;
 
+import com.unique.bullet.common.Constants;
+import com.unique.bullet.exception.BulletException;
+import com.unique.bullet.listener.ListenerFactoryBean;
+import com.unique.bullet.listener.MessageListenerAdapter;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.ManagedList;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 public class ListenerContainerParser extends AbstractSingleBeanDefinitionParser {
 
 
     private static final String LISTENER_ELEMENT = "listener";
     private static final String ID_ATTRIBUTE = "id";
-    private static final String QUEUE_NAMES_ATTRIBUTE = "queue-names";
-    private static final String QUEUES_ATTRIBUTE = "queues";
+    private static final String DESTINATION_ATTRIBUTE = "destination";
     private static final String REF_ATTRIBUTE = "ref";
-    private static final String METHOD_ATTRIBUTE = "method";
-    private static final String MESSAGE_CONVERTER_ATTRIBUTE = "message-converter";
-    private static final String RESPONSE_EXCHANGE_ATTRIBUTE = "response-exchange";
-    private static final String RESPONSE_ROUTING_KEY_ATTRIBUTE = "response-routing-key";
+    private static final String MESSAGE_MODEL_ATTRIBUTE = "message-model";
+    private static final String GROUP_ATTRIBUTE = "group";
+    private static final String INTERFACE_ATTRIBUTE = "interface";
+    private static final String ROUTINGKEY_ATTRIBUTE = "routingKey";
+    private final static String ADDRESS_ATTRIBUTE = "addresses";
+    private final static String SELECTOR_ATTRIBUTE = "selector";
+    private final static String MAX_RECONSUME_TIMES_ATTRIBUTE = "maxReconsumeTimes";
 
     @Override
     protected Class<?> getBeanClass(Element element) {
-        return null;
+        return ListenerFactoryBean.class;
     }
 
     @Override
     protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 
-        /*CompositeComponentDefinition compositeDef = new CompositeComponentDefinition(element.getTagName(),
-                parserContext.extractSource(element));
-        parserContext.pushContainingComponent(compositeDef);
+
+        AbstractBeanDefinition beanDefinition = builder.getRawBeanDefinition();
+        beanDefinition.setBeanClass(ListenerFactoryBean.class);
+
+
+        //
+        String messageModel = element.getAttribute(MESSAGE_MODEL_ATTRIBUTE);
+        if (StringUtils.isAnyEmpty(messageModel)) {
+            messageModel = Constants.MESSAGE_MODEL_CLUSTERING;
+        }
+        builder.addPropertyValue("messageModel", messageModel);
+
+        String group = element.getAttribute(GROUP_ATTRIBUTE);
+        if (StringUtils.isAnyEmpty(messageModel)) {
+            throw new BulletException("<bullet:listener-container> '" + GROUP_ATTRIBUTE + "' can't be blank");
+        }
+        builder.addPropertyValue(GROUP_ATTRIBUTE, group);
+
+        String address = element.getAttribute(ADDRESS_ATTRIBUTE);
+        if (StringUtils.isAnyEmpty(address)) {
+            throw new BulletException("<bullet:listener-container> " + ADDRESS_ATTRIBUTE + " attribute can't be blank");
+        }
+        builder.addPropertyValue(ADDRESS_ATTRIBUTE, address);
+
+        String maxReconsumeTimes = element.getAttribute(MAX_RECONSUME_TIMES_ATTRIBUTE);
+        if (StringUtils.isNoneEmpty(maxReconsumeTimes)) {
+            builder.addPropertyValue(MAX_RECONSUME_TIMES_ATTRIBUTE, maxReconsumeTimes);
+        }
 
         NodeList childNodes = element.getChildNodes();
+        ManagedList<Object> listeners = new ManagedList(childNodes.getLength());
+        listeners.setSource(parserContext.extractSource(element));
+        listeners.setMergeEnabled(Boolean.TRUE);
         for (int i = 0; i < childNodes.getLength(); i++) {
             Node child = childNodes.item(i);
             if (child.getNodeType() == Node.ELEMENT_NODE) {
                 String localName = parserContext.getDelegate().getLocalName(child);
                 if (LISTENER_ELEMENT.equals(localName)) {
-                    parseListener((Element) child, element, parserContext);
+                    listeners.add(parseListener((Element) child, element, parserContext));
                 }
             }
         }
-        parserContext.popAndRegisterContainingComponent();
-
+        beanDefinition.getPropertyValues().add("messageListener", listeners);
     }
 
-    private void parseListener(Element listenerEle, Element containerEle, ParserContext parserContext) {
-        RootBeanDefinition listenerDef = new RootBeanDefinition();
+    private BeanDefinition parseListener(Element listenerEle, Element containerEle, ParserContext parserContext) {
+
+        RootBeanDefinition listenerDef = new RootBeanDefinition(MessageListenerAdapter.class);
         listenerDef.setSource(parserContext.extractSource(listenerEle));
 
+        String interfaze = listenerEle.getAttribute(INTERFACE_ATTRIBUTE);
+        if (StringUtils.isAnyEmpty(interfaze)) {
+            throw new BulletException("<bullet:listener> '" + INTERFACE_ATTRIBUTE + "' can't be blank");
+        }
+        try {
+            Class.forName(interfaze);
+        } catch (ClassNotFoundException e) {
+            throw new BulletException(e);
+        }
+        listenerDef.getPropertyValues().add(INTERFACE_ATTRIBUTE, interfaze);
+
         String ref = listenerEle.getAttribute(REF_ATTRIBUTE);
-        if (!StringUtils.hasText(ref)) {
+        if (StringUtils.isAnyEmpty(ref)) {
             parserContext.getReaderContext().error("Listener 'ref' attribute contains empty value.", listenerEle);
         } else {
             listenerDef.getPropertyValues().add("delegate", new RuntimeBeanReference(ref));
         }
 
-        String method = null;
-        if (listenerEle.hasAttribute(METHOD_ATTRIBUTE)) {
-            method = listenerEle.getAttribute(METHOD_ATTRIBUTE);
-            if (!StringUtils.hasText(method)) {
-                parserContext.getReaderContext()
-                        .error("Listener 'method' attribute contains empty value.", listenerEle);
-            }
-        }
-        listenerDef.getPropertyValues().add("defaultListenerMethod", method);
-
-        if (containerEle.hasAttribute(MESSAGE_CONVERTER_ATTRIBUTE)) {
-            String messageConverter = containerEle.getAttribute(MESSAGE_CONVERTER_ATTRIBUTE);
-            if (!StringUtils.hasText(messageConverter)) {
-                parserContext.getReaderContext().error(
-                        "Listener container 'message-converter' attribute contains empty value.", containerEle);
-            } else {
-                listenerDef.getPropertyValues().add("messageConverter", new RuntimeBeanReference(messageConverter));
-            }
+        //topic 主题名称
+        String destination = listenerEle.getAttribute(DESTINATION_ATTRIBUTE);
+        if (StringUtils.isAnyEmpty(destination)) {
+            parserContext.getReaderContext().error("Listener 'destination' attribute contains empty value.", listenerEle);
+        } else {
+            listenerDef.getPropertyValues().add(DESTINATION_ATTRIBUTE, destination);
         }
 
-        BeanDefinition containerDef = RabbitNamespaceUtils.parseContainer(containerEle, parserContext);
-
-        if (listenerEle.hasAttribute(RESPONSE_EXCHANGE_ATTRIBUTE)) {
-            String responseExchange = listenerEle.getAttribute(RESPONSE_EXCHANGE_ATTRIBUTE);
-            listenerDef.getPropertyValues().add("responseExchange", responseExchange);
+        String routingKey = listenerEle.getAttribute(ROUTINGKEY_ATTRIBUTE);
+        if (StringUtils.isAnyEmpty(routingKey)) {
+            routingKey = "*";
+        } else {
+            listenerDef.getPropertyValues().add(ROUTINGKEY_ATTRIBUTE, routingKey);
         }
 
-        if (listenerEle.hasAttribute(RESPONSE_ROUTING_KEY_ATTRIBUTE)) {
-            String responseRoutingKey = listenerEle.getAttribute(RESPONSE_ROUTING_KEY_ATTRIBUTE);
-            listenerDef.getPropertyValues().add("responseRoutingKey", responseRoutingKey);
+        String selector = listenerEle.getAttribute(SELECTOR_ATTRIBUTE);
+        if (!StringUtils.isAnyEmpty(selector)) {
+            listenerDef.getPropertyValues().add(SELECTOR_ATTRIBUTE, selector);
         }
-
-        listenerDef.setBeanClassName("org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter");
-        containerDef.getPropertyValues().add("messageListener", listenerDef);
-
-        String containerBeanName = containerEle.getAttribute(ID_ATTRIBUTE);
-        // If no bean id is given auto generate one using the ReaderContext's BeanNameGenerator
-        if (!StringUtils.hasText(containerBeanName)) {
-            containerBeanName = parserContext.getReaderContext().generateBeanName(containerDef);
-        }
-
-        *//*if (!NamespaceUtils.isAttributeDefined(listenerEle, QUEUE_NAMES_ATTRIBUTE)
-                && !NamespaceUtils.isAttributeDefined(listenerEle, QUEUES_ATTRIBUTE)) {
-            parserContext.getReaderContext().error("Listener 'queue-names' or 'queues' attribute must be provided.",
-                    listenerEle);
-        }
-        if (NamespaceUtils.isAttributeDefined(listenerEle, QUEUE_NAMES_ATTRIBUTE)
-                && NamespaceUtils.isAttributeDefined(listenerEle, QUEUES_ATTRIBUTE)) {
-            parserContext.getReaderContext().error("Listener 'queue-names' or 'queues' attribute must be provided but not both.",
-                    listenerEle);
-        }*//*
-
-        String queueNames = listenerEle.getAttribute(QUEUE_NAMES_ATTRIBUTE);
-        if (StringUtils.hasText(queueNames)) {
-            String[] names = StringUtils.commaDelimitedListToStringArray(queueNames);
-            List<TypedStringValue> values = new ManagedList<TypedStringValue>();
-            for (int i = 0; i < names.length; i++) {
-                values.add(new TypedStringValue(names[i].trim()));
-            }
-            containerDef.getPropertyValues().add("queueNames", values);
-        }
-        String queues = listenerEle.getAttribute(QUEUES_ATTRIBUTE);
-        if (StringUtils.hasText(queues)) {
-            String[] names = StringUtils.commaDelimitedListToStringArray(queues);
-            List<RuntimeBeanReference> values = new ManagedList<RuntimeBeanReference>();
-            for (int i = 0; i < names.length; i++) {
-                values.add(new RuntimeBeanReference(names[i].trim()));
-            }
-            containerDef.getPropertyValues().add("queues", values);
-        }
-
-        // Register the listener and fire event
-        parserContext.registerBeanComponent(new BeanComponentDefinition(containerDef, containerBeanName));*/
+        return listenerDef;
     }
-
-
 }

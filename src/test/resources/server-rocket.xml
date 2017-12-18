@@ -16,14 +16,17 @@
         </property>
         <property name="ignoreUnresolvablePlaceholders" value="true"/>
     </bean>
-    <bullet:protocol id="rocket" sysgroup="inf_bullet_group" addresses="127.0.0.1:9876" />
 
-    <bean id="callBack" class="com.unique.bullet.client.SendCallBackTest" />
-    <bullet:publish id="service" interface="com.unique.bullet.service.IService" destination="inf_bullet_test"
-                    connection="rocket" send-mode="ASYNC" routingKey="unique" sendCallback="callBack" codec="hessian" delayTimeLevel="5">
-    </bullet:publish>
+    <bean id="serviceImpl" class="com.unique.bullet.service.impl.ServiceImpl"></bean>
+    <bullet:listener-container id="listener-container" message-model="CLUSTERING" group="bullet_group_clustering"
+                               addresses="${bullet.nameserver.address}">
+        <bullet:listener interface="com.unique.bullet.service.IService" ref="serviceImpl" destination="bullet_test"/>
+        <bullet:listener interface="com.unique.bullet.service.IService" ref="serviceImpl" destination="bullet_test2" selector="inf=100"/>
+    </bullet:listener-container>
 
-    <bullet:publish id="pubservice" interface="com.unique.bullet.service.PublishService"
-                    destination="inf_bullet_pub_test" connection="rocket" send-mode="SYNC"/>
+    <bean id="publishService" class="com.unique.bullet.service.impl.PublishServiceImpl" />
+    <bullet:listener-container id="listener-container2" message-model="BROADCASTING" group="inf_bullet_group_broadcasting" addresses="${bullet.nameserver.address}">
+        <bullet:listener interface="com.unique.bullet.service.PublishService" ref="publishService" destination="bullet_pub_test"/>
+    </bullet:listener-container>
 
 </beans>

@@ -1,7 +1,9 @@
 package com.unique.bullet.client;
 
+import com.unique.bullet.dto.Car;
+import com.unique.bullet.dto.Person;
 import com.unique.bullet.service.IService;
-
+import com.unique.bullet.service.PublishService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -15,6 +17,11 @@ import org.springframework.test.context.support.DependencyInjectionTestExecution
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 
+import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath*:client-rocket.xml"})
 @TestExecutionListeners(listeners = {DependencyInjectionTestExecutionListener.class, DirtiesContextTestExecutionListener.class,
@@ -26,13 +33,45 @@ public class ClientTest {
     @Qualifier("service")
     IService service;
 
-    @Test
-    public void testSayHello(){
+    @Resource
+    PublishService publishService;
 
-        service.sayHello("this is rocket msg");
+    @Test
+    public void testSayHello() throws InterruptedException {
+
+//        while (true){
+        service.sayHello("this is bullet msg");
+        Thread.sleep(2);
+//        }
 
     }
 
+    @Test
+    public void testSendPerson() {
+        //service.sendPerson(PersonTest.getPerson());
 
+        Person person = new Person();
+
+        person.setAge(100);
+        person.setName("unique");
+
+        List<Car> cars = new LinkedList<Car>();
+        Car car = new Car();
+        car.setName("北京吉普");
+        cars.add(car);
+
+        person.setCars(cars);
+        List<Person> persons = new ArrayList<Person>();
+        persons.add(person);
+
+        service.sendPerson(person,"unique",persons);
+    }
+
+    @Test
+    public void testPubHello() {
+
+        publishService.sayHello("this is pub msg");
+
+    }
 
 }

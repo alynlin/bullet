@@ -3,7 +3,6 @@ package com.unique.bullet.config;
 import com.unique.bullet.common.Constants;
 import com.unique.bullet.connection.ConnectionFactoryBean;
 import com.unique.bullet.exception.BulletException;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +20,8 @@ public class ProtocolBeanParser extends AbstractSingleBeanDefinitionParser {
     private final static String PASSWORD_ATTRIBUTE = "password";
     private final static String ADDRESS_ATTRIBUTE = "addresses";
     private final static String SYSTEM_GROUP = "sysgroup";
+    private final static String PERMITS_SIZE_ATTRIBUTE = "permits-size";
+    private final static String SENDMSG_TIMEOUT_ATTRIBUTE = "sendMsgTimeout";
 
     @Override
     protected Class<?> getBeanClass(Element element) {
@@ -55,6 +56,14 @@ public class ProtocolBeanParser extends AbstractSingleBeanDefinitionParser {
         }
         builder.addPropertyValue(ADDRESS_ATTRIBUTE, address);
 
+        String sendMsgTimeout = element.getAttribute(SENDMSG_TIMEOUT_ATTRIBUTE);
+        if (StringUtils.isNoneEmpty(sendMsgTimeout)) {
+            builder.addPropertyValue(SENDMSG_TIMEOUT_ATTRIBUTE, sendMsgTimeout);
+        }
 
+        String permits = element.getAttribute(PERMITS_SIZE_ATTRIBUTE);
+        if (StringUtils.isNoneEmpty(permits)) {
+            builder.addPropertyValue("permits", permits);
+        }
     }
 }

@@ -1,28 +1,41 @@
 package com.unique.bullet.publish;
 
+import com.unique.bullet.common.Constants;
+import com.unique.bullet.common.SendMode;
 import com.unique.bullet.message.MessageRequest;
 import com.unique.bullet.serializer.ISerializer;
 import com.unique.bullet.serializer.SerializerFactory;
-
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.rocketmq.client.exception.MQBrokerException;
+import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
+import org.apache.rocketmq.client.producer.SendCallback;
 import org.apache.rocketmq.common.message.Message;
+import org.apache.rocketmq.remoting.exception.RemotingException;
 
 import java.lang.reflect.Method;
+import java.util.Map;
 
 public class MethodInvokeAdvice implements MethodInterceptor {
-    private final static Logger log = LogManager.getLogger(MethodInvokeAdvice.class);
+    private final static Logger logger = LogManager.getLogger(MethodInvokeAdvice.class);
     private String interfaceName;
     private DefaultMQProducer producer;
     private String routingKey;
-    private int codec;
-    private int ttl;
+    private String codec;
+    private long ttl;
     private String destination;
+    private String communicationMode;
+    private int delayTimeLevel;
+    private Map<String, String> filterProp;
+    private SendCallback sendCallback;
 
-    public MethodInvokeAdvice(String interfaceName, DefaultMQProducer producer, String routingKey, int codec, int ttl, String destination) {
+    /**
+     * Timeout for sending messages.
+     */
+    public MethodInvokeAdvice(String interfaceName, DefaultMQProducer producer, String routingKey, String codec, long ttl, String destination) {
         this.interfaceName = interfaceName;
         this.producer = producer;
         this.routingKey = routingKey;
@@ -37,7 +50,9 @@ public class MethodInvokeAdvice implements MethodInterceptor {
         Method method = invocation.getMethod();
         Class<?>[] types = method.getParameterTypes();
 
+        //包装请求
         MessageRequest request = new MessageRequest();
+        //TODO 删除interfaceName
         request.setInterfaceName(interfaceName);
         request.setMethodName(method.getName());
         request.setArgs(args);
@@ -45,46 +60,104 @@ public class MethodInvokeAdvice implements MethodInterceptor {
 
         ISerializer serializer = SerializerFactory.getSerializer(codec);
         byte[] bytes = serializer.serialize(request);
-        byte[] body = null;
 
-        body = bytes;
-
-        Message msg = new Message(destination /* Topic */, routingKey /* Tag */, body /* Message body */);
-
-        producer.send(msg);
-
-        /*RabbitRequest request = new RabbitRequest();
-        Object[] args = invocation.getArguments();
-        Method method = invocation.getMethod();
-        Class<?>[] types = method.getParameterTypes();
-        //
-        request.setInterfaceName(interfaceName);
-        request.setMethodName(method.getName());
-        request.setArgs(args);
-        request.setTypes(types);
-        ISerializer serializer = SerializerFactory.getSerializer(codec);
-        byte[] bytes = serializer.serialize(request);
-        byte[] body = null;
-        Map<String, Object> headers = new HeadersBuilder().setBody(bytes).setCodec(codec).builder();
-        if ((Integer) headers.get(Constants.ZIP_TAG) == Constants.ZIP) {
-            body = QuickLZ.compress(bytes, 1);
-            if (log.isDebugEnabled()) {
-                log.debug(">>>>>{}/{}={},messageId={}", body.length, bytes.length, body.length / (double) bytes.length, request.getMessageId());
+        Message msg = new Message(destination /* Topic */, routingKey /* Tag */, bytes /* Message body */);
+        //默认delayTimeLevel=0，消息不延迟
+        msg.setDelayTimeLevel(delayTimeLevel);
+        msg.putUserProperty(Constants.CODEC_TAG, codec);
+        msg.putUserProperty(Constants.X_MESSAGE_TTL, Long.toString(ttl));
+        if (filterProp != null) {
+            for (Map.Entry<String, String> entry : filterProp.entrySet()) {
+                msg.putUserProperty(entry.getKey(), entry.getValue());
             }
-        } else {
-            body = bytes;
         }
-        BasicProperties properties = new MessagePropertiesBuilder()
-                .setDeliveryMode(2)
-                .setPriority(0)
-                .setHeaders(headers)
-                .setExpiration(String.valueOf(ttl * 1000))
-                .build();
-        log.info(">>>>>publish invoke {} in remote server,messageId={}", new Object[]{TypesUtil.convert(interfaceName, method.getName(), types), request.getMessageId()});
-        channel.basicPublish(interfaceName, routingKey, properties, body);
-        Class<?> returnType = invocation.getMethod().getReturnType();
-        return DefaultResult.asyncResult(returnType);*/
+        //发送消息
+        sendMessage(msg);
 
         return null;
+    }
+
+    /**
+     * @param msg to send
+     * @throws InterruptedException
+     * @throws RemotingException
+     * @throws MQClientException
+     * @throws MQBrokerException
+     */
+    private void sendMessage(Message msg) throws InterruptedException, RemotingException, MQClientException, MQBrokerException {
+        switch (communicationMode) {
+            case SendMode.ASYNC:
+                //异步方式发送消息
+                asynSend(msg);
+                break;
+            case SendMode.ONEWAY:
+                sendOneway(msg);
+                break;
+            case SendMode.SYNC:
+                //同步方式发送消息
+                send(msg);
+                break;
+            default:
+                //默认使用异步方式
+                asynSend(msg);
+                break;
+        }
+    }
+
+    /**
+     * 同步发送消息
+     *
+     * @param msg Message to send
+     * @throws InterruptedException
+     * @throws RemotingException
+     * @throws MQClientException
+     * @throws MQBrokerException
+     */
+    private void send(Message msg) throws InterruptedException, RemotingException, MQClientException, MQBrokerException {
+
+        producer.send(msg);
+    }
+
+    /**
+     * 异步发送
+     *
+     * @param msg Message to send
+     * @throws InterruptedException
+     * @throws RemotingException
+     * @throws MQClientException
+     * @throws MQBrokerException
+     */
+    private void asynSend(Message msg) throws InterruptedException, RemotingException, MQClientException, MQBrokerException {
+        producer.send(msg, sendCallback);
+    }
+
+
+    /**
+     * 此方法不等待broker返回ack，可能会有消息丢失
+     *
+     * @param msg Message to send
+     * @throws RemotingException
+     * @throws MQClientException
+     * @throws InterruptedException
+     */
+    private void sendOneway(Message msg) throws RemotingException, MQClientException, InterruptedException {
+
+        producer.sendOneway(msg);
+    }
+
+    public void setCommunicationMode(String communicationMode) {
+        this.communicationMode = communicationMode;
+    }
+
+    public void setDelayTimeLevel(int delayTimeLevel) {
+        this.delayTimeLevel = delayTimeLevel;
+    }
+
+    public void setFilterProp(Map<String, String> filterProp) {
+        this.filterProp = filterProp;
+    }
+
+    public void setSendCallback(SendCallback sendCallback) {
+        this.sendCallback = sendCallback;
     }
 }

@@ -1,5 +1,7 @@
 package com.unique.bullet.serializer;
 
+import com.unique.bullet.exception.BulletException;
+
 import java.io.*;
 
 public class JDKSerializer implements ISerializer {
@@ -15,7 +17,7 @@ public class JDKSerializer implements ISerializer {
         return SingletonHolder.INSTANCE;
     }
 
-    public byte[] serialize(Serializable obj) throws Exception {
+    public byte[] serialize(Serializable obj) throws BulletException {
         if (obj == null) {
             return null;
         }
@@ -23,9 +25,14 @@ public class JDKSerializer implements ISerializer {
         ObjectOutputStream objectOut = null;
         byte[] bytes = null;
         try {
-            objectOut = new ObjectOutputStream(output);
-            objectOut.writeObject(obj);
-            bytes = output.toByteArray();
+            try {
+                objectOut = new ObjectOutputStream(output);
+                objectOut.writeObject(obj);
+                bytes = output.toByteArray();
+            } catch (IOException e) {
+                throw new BulletException(e);
+            }
+
         } finally {
             try {
                 if (objectOut != null) {
@@ -49,7 +56,7 @@ public class JDKSerializer implements ISerializer {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T deserialize(byte[] bytes) throws Exception {
+    public <T> T deserialize(byte[] bytes) throws BulletException {
         if (bytes == null || bytes.length <= 0) {
             return null;
         }
@@ -57,8 +64,15 @@ public class JDKSerializer implements ISerializer {
         ObjectInputStream objectIn = null;
         Object object = null;
         try {
-            objectIn = new ObjectInputStream(input);
-            object = objectIn.readObject();
+            try {
+                objectIn = new ObjectInputStream(input);
+                object = objectIn.readObject();
+            } catch (IOException e) {
+                throw new BulletException(e);
+            } catch (ClassNotFoundException e) {
+                throw new BulletException(e);
+            }
+
         } finally {
             try {
                 if (objectIn != null) {
