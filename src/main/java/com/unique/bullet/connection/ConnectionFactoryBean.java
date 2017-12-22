@@ -1,16 +1,17 @@
 package com.unique.bullet.connection;
 
 import com.unique.bullet.common.SystemConfig;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.PriorityOrdered;
 
+
 public class ConnectionFactoryBean implements InitializingBean, FactoryBean, PriorityOrdered, DisposableBean {
-    private final static Logger logger = LoggerFactory.getLogger(ConnectionFactoryBean.class);
+    private final static Logger logger = LogManager.getLogger(ConnectionFactoryBean.class);
     private String addresses;
     private DefaultMQProducer producer = null;
     private int connectionTimeout = 1000;
@@ -23,6 +24,7 @@ public class ConnectionFactoryBean implements InitializingBean, FactoryBean, Pri
     private int sendMsgTimeout = 3000;
     /**
      * max num 65535
+     * 发送信号量，限流使用，防止应用OOM
      */
     private int permits = 10000;
 

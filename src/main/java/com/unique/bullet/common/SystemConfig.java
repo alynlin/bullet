@@ -11,4 +11,6 @@ public class SystemConfig {
     public static final String COM_ROCKETMQ_REMOTING_CLIENT_ONEWAY_SEMAPHORE_VALUE = //
             "com.rocketmq.remoting.clientOnewaySemaphoreValue";
 
+    public static final String ROCKETMQ_CLIENT_LOGLEVEL = "rocketmq.client.logLevel";
+
 }

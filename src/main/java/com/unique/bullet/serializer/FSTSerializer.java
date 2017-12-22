@@ -16,7 +16,7 @@ public class FSTSerializer implements ISerializer {
     }
 
     public static final FSTSerializer getInstance() {
-        return FSTHolder.INSTANCE;
+        return FSTSerializer.FSTHolder.INSTANCE;
     }
 
     @Override

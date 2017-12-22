@@ -1,0 +1,20 @@
+Manifest-Version: 1.0
+Class-Path: log4j-core-2.8.2.jar org.osgi.core-4.3.1.jar disruptor-3.3
+ .6.jar disruptor-1.2.10-jdk7.jar slf4j-api-1.7.24.jar jctools-core-1.
+ 2.1.jar jackson-core-2.8.7.jar jackson-databind-2.8.7.jar jackson-ann
+ otations-2.8.0.jar jackson-dataformat-yaml-2.8.7.jar snakeyaml-1.17.j
+ ar jackson-dataformat-xml-2.8.7.jar jackson-module-jaxb-annotations-2
+ .8.7.jar stax2-api-3.1.4.jar woodstox-core-5.0.3.jar woodstox-core-5.
+ 0.2.jar jansi-1.14.jar javax.mail-1.5.5.jar activation-1.1.jar javax.
+ persistence-2.1.0.jar jboss-jms-api_1.1_spec-1.0.1.Final.jar kafka-cl
+ ients-0.10.1.1.jar lz4-1.3.0.jar snappy-java-1.1.2.6.jar jeromq-0.3.6
+ .jar commons-compress-1.13.jar commons-csv-1.4.jar jcommander-1.48.ja
+ r log4j-api-2.8.2.jar rocketmq-client-4.1.0-incubating.jar rocketmq-c
+ ommon-4.1.0-incubating.jar rocketmq-remoting-4.1.0-incubating.jar fas
+ tjson-1.2.29.jar netty-all-4.0.36.Final.jar slf4j-api-1.7.5.jar commo
+ ns-lang3-3.4.jar spring-context-3.2.13.RELEASE.jar spring-aop-3.2.13.
+ RELEASE.jar aopalliance-1.0.jar spring-beans-3.2.13.RELEASE.jar sprin
+ g-core-3.2.13.RELEASE.jar commons-logging-1.1.3.jar spring-expression
+ -3.2.13.RELEASE.jar spring-test-3.2.13.RELEASE.jar spring-context-sup
+ port-3.2.13.RELEASE.jar junit-4.8.2.jar fst-1.63.jar
+

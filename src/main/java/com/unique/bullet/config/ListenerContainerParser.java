@@ -31,6 +31,8 @@ public class ListenerContainerParser extends AbstractSingleBeanDefinitionParser 
     private final static String ADDRESS_ATTRIBUTE = "addresses";
     private final static String SELECTOR_ATTRIBUTE = "selector";
     private final static String MAX_RECONSUME_TIMES_ATTRIBUTE = "maxReconsumeTimes";
+    private final static String PULL_THRESHOLD_TOPIC_ATTRIBUTE = "pullThresholdForTopic";
+    private final static String PULL_THRESHOLDSIZE_TOPIC_ATTRIBUTE = "pullThresholdSizeForTopic";
 
     @Override
     protected Class<?> getBeanClass(Element element) {
@@ -67,6 +69,15 @@ public class ListenerContainerParser extends AbstractSingleBeanDefinitionParser 
         String maxReconsumeTimes = element.getAttribute(MAX_RECONSUME_TIMES_ATTRIBUTE);
         if (StringUtils.isNoneEmpty(maxReconsumeTimes)) {
             builder.addPropertyValue(MAX_RECONSUME_TIMES_ATTRIBUTE, maxReconsumeTimes);
+        }
+
+        String pullThresholdForTopic = element.getAttribute(PULL_THRESHOLD_TOPIC_ATTRIBUTE);
+        if (!StringUtils.isAnyEmpty(pullThresholdForTopic)) {
+            builder.addPropertyValue(PULL_THRESHOLD_TOPIC_ATTRIBUTE, pullThresholdForTopic);
+        }
+        String pullThresholdSizeForTopic = element.getAttribute(PULL_THRESHOLDSIZE_TOPIC_ATTRIBUTE);
+        if (!StringUtils.isAnyEmpty(pullThresholdSizeForTopic)) {
+            builder.addPropertyValue(PULL_THRESHOLDSIZE_TOPIC_ATTRIBUTE, pullThresholdSizeForTopic);
         }
 
         NodeList childNodes = element.getChildNodes();
@@ -127,6 +138,7 @@ public class ListenerContainerParser extends AbstractSingleBeanDefinitionParser 
         if (!StringUtils.isAnyEmpty(selector)) {
             listenerDef.getPropertyValues().add(SELECTOR_ATTRIBUTE, selector);
         }
+
         return listenerDef;
     }
 }

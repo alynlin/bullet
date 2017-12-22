@@ -10,7 +10,7 @@ public final class SerializerFactory {
     private static Map<String, ISerializer> serializerFactory;
 
     static {
-        serializerFactory = new ConcurrentHashMap<String, ISerializer>();
+        serializerFactory = new ConcurrentHashMap<>();
         serializerFactory.put("jdk", JDKSerializer.getInstance());
         serializerFactory.put("fst", FSTSerializer.getInstance());
         serializerFactory.put("hessian", HessianSerialize.getInstance());

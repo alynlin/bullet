@@ -97,9 +97,9 @@
                 <xsd:attribute name="ttl" type="xsd:long" use="optional" default="-1"/>
                 <xsd:attribute name="routingKey" type="xsd:string"
                                use="optional"/>
-                <xsd:attribute name="protocol" type="xsd:string" use="optional"/>
+                <!--<xsd:attribute name="protocol" type="xsd:string" use="optional"/>
+                <xsd:attribute name="timeout" type="xsd:string" use="optional"/>-->
                 <xsd:attribute name="destination" type="xsd:string" use="required"/>
-                <xsd:attribute name="timeout" type="xsd:string" use="optional"/>
                 <xsd:attribute name="connection" type="xsd:string" use="required"/>
                 <xsd:attribute name="codec" use="optional">
                     <xsd:simpleType>
@@ -133,6 +133,7 @@
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:attribute>
+                <xsd:attribute name="filter-annotation" type="xsd:boolean" default="false"></xsd:attribute>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
@@ -145,7 +146,6 @@
                     <xsd:sequence>
                         <xsd:element name="listener" type="listenerType" minOccurs="0" maxOccurs="unbounded"/>
                     </xsd:sequence>
-                    <xsd:attribute name="connection-factory" type="xsd:string"/>
                     <xsd:attribute name="message-model" use="required">
                         <xsd:simpleType>
                             <xsd:restriction base="xsd:string">
@@ -171,6 +171,8 @@
                             </xsd:restriction>
                         </xsd:simpleType>
                     </xsd:attribute>
+                    <xsd:attribute name="pullThresholdForTopic" type="xsd:int" use="optional"/>
+                    <xsd:attribute name="pullThresholdSizeForTopic" type="xsd:int" use="optional"/>
                 </xsd:extension>
             </xsd:complexContent>
         </xsd:complexType>

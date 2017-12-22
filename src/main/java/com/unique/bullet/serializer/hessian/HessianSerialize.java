@@ -1,9 +1,9 @@
 package com.unique.bullet.serializer.hessian;
 
-import com.caucho.hessian.io.Hessian2Input;
-import com.caucho.hessian.io.Hessian2Output;
 import com.unique.bullet.exception.BulletException;
 import com.unique.bullet.serializer.ISerializer;
+import com.caucho.hessian.io.Hessian2Input;
+import com.caucho.hessian.io.Hessian2Output;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -20,9 +20,10 @@ public class HessianSerialize implements ISerializer {
     }
 
     public static final HessianSerialize getInstance() {
-        return HessianHolder.INSTANCE;
+        return HessianSerialize.HessianHolder.INSTANCE;
     }
 
+    @Override
     public byte[] serialize(Serializable obj) throws BulletException {
 
         ByteArrayOutputStream output = new ByteArrayOutputStream();
@@ -59,6 +60,7 @@ public class HessianSerialize implements ISerializer {
         return bytes;
     }
 
+    @Override
     public <T> T deserialize(byte[] bytes) throws BulletException {
         ByteArrayInputStream input = new ByteArrayInputStream(bytes);
         Hessian2Input hi = new Hessian2Input(input);

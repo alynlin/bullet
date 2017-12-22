@@ -1,6 +1,7 @@
 package com.unique.bullet.service;
 
-
+import com.unique.bullet.annotation.MessageProperties;
+import com.unique.bullet.annotation.MessageProperty;
 import com.unique.bullet.dto.Person;
 
 import java.util.List;
@@ -18,6 +19,6 @@ public interface IService {
 
     void sendPerson(Person person);
 
-    void sendPerson(Person person, String name, List<Person> persons);
+    void sendPerson(@MessageProperties({@MessageProperty(name = "userName", jxpath = "name"), @MessageProperty(name = "userAge", jxpath = "age")}) Person person, @MessageProperty(name = "pname") String name, List<Person> persons);
 
 }

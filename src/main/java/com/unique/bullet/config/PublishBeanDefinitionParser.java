@@ -38,6 +38,8 @@ public class PublishBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
     private static final String FILTER_PROP_ELEMENT = "filter-prop";
     private static final String FILTER_PROP_ATTRIBUTE = "filterProp";
     private static final String SEND_CALLBACK_ATTRIBUTE = "sendCallback";
+    private static final String FILTER_ANNOTATION_ELEMENT = "filter-annotation";
+    private static final String FILTER_ANNOTATION_ATTRIBUTE = "filterAnnotation";
 
     @Override
     protected Class<?> getBeanClass(Element element) {
@@ -101,6 +103,16 @@ public class PublishBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
         Object connection = new RuntimeBeanReference(element.getAttribute(CONNECTION_ATTRIBUTE));
         builder.addPropertyValue(CONNECTION_ATTRIBUTE, connection);
 
+        String sendCallBack = element.getAttribute(SEND_CALLBACK_ATTRIBUTE);
+        if (StringUtils.isNoneEmpty(sendCallBack)) {
+            builder.addPropertyValue(SEND_CALLBACK_ATTRIBUTE, new RuntimeBeanReference(sendCallBack));
+        }
+
+        String filterAnnotation = element.getAttribute(FILTER_ANNOTATION_ELEMENT);
+        if (StringUtils.isNoneEmpty(filterAnnotation)) {
+            builder.addPropertyValue(FILTER_ANNOTATION_ATTRIBUTE, Boolean.valueOf(filterAnnotation));
+        }
+
         NodeList childNodes = element.getChildNodes();
         for (int i = 0; i < childNodes.getLength(); i++) {
             Node child = childNodes.item(i);
@@ -108,14 +120,9 @@ public class PublishBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
                 String localName = parserContext.getDelegate().getLocalName(child);
                 if (FILTER_PROP_ELEMENT.equals(localName)) {
                     builder.addPropertyValue(FILTER_PROP_ATTRIBUTE, parseMessageProperty((Element) child, element, parserContext));
-                    return;
+                    break;
                 }
             }
-        }
-
-        String sendCallBack = element.getAttribute(SEND_CALLBACK_ATTRIBUTE);
-        if (StringUtils.isNoneEmpty(sendCallBack)) {
-            builder.addPropertyValue(SEND_CALLBACK_ATTRIBUTE, new RuntimeBeanReference(sendCallBack));
         }
     }
 

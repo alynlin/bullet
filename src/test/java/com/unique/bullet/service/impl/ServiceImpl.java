@@ -27,12 +27,14 @@ public class ServiceImpl implements IService {
         return txnCtrl;
     }
 
+    @Override
     public void sendPerson(Person person) {
 
         logger.info(person.toString());
 
     }
 
+    @Override
     public void sendPerson(Person person, String name, List<Person> persons) {
         logger.info(person.toString());
         logger.info(name.toString());

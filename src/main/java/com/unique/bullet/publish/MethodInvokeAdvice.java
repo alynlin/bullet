@@ -1,5 +1,6 @@
 package com.unique.bullet.publish;
 
+import com.unique.bullet.annotation.support.HandlerMethodAnnoParser;
 import com.unique.bullet.common.Constants;
 import com.unique.bullet.common.SendMode;
 import com.unique.bullet.message.MessageRequest;
@@ -31,6 +32,8 @@ public class MethodInvokeAdvice implements MethodInterceptor {
     private int delayTimeLevel;
     private Map<String, String> filterProp;
     private SendCallback sendCallback;
+    //是否启用注解过滤
+    private boolean filterAnnotation = false;
 
     /**
      * Timeout for sending messages.
@@ -71,10 +74,35 @@ public class MethodInvokeAdvice implements MethodInterceptor {
                 msg.putUserProperty(entry.getKey(), entry.getValue());
             }
         }
+        //注解方式过滤
+        parseAnnotationFilterValue(invocation, msg);
+
         //发送消息
         sendMessage(msg);
 
         return null;
+    }
+
+    /**
+     * 解析获取参数注解属性，用于消息过过滤标识
+     *
+     * @param invocation method interceptor
+     * @param msg        to send
+     */
+    private void parseAnnotationFilterValue(MethodInvocation invocation, Message msg) {
+        //启用注解过滤
+        if (filterAnnotation) {
+            Object[] args = invocation.getArguments();
+            Method method = invocation.getMethod();
+
+            Map<String, String> filterPropertyMap = HandlerMethodAnnoParser.parseMessageProperty(method, args);
+            //添加并更新过滤标识
+            if (filterPropertyMap != null) {
+                for (Map.Entry<String, String> entry : filterPropertyMap.entrySet()) {
+                    msg.putUserProperty(entry.getKey(), entry.getValue());
+                }
+            }
+        }
     }
 
     /**
@@ -159,5 +187,9 @@ public class MethodInvokeAdvice implements MethodInterceptor {
 
     public void setSendCallback(SendCallback sendCallback) {
         this.sendCallback = sendCallback;
+    }
+
+    public void setFilterAnnotation(boolean filterAnnotation) {
+        this.filterAnnotation = filterAnnotation;
     }
 }

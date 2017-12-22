@@ -36,6 +36,9 @@ public class ClientTest {
     @Resource
     PublishService publishService;
 
+    @Resource
+    IService serviceAnno;
+
     @Test
     public void testSayHello() throws InterruptedException {
 
@@ -55,7 +58,7 @@ public class ClientTest {
         person.setAge(100);
         person.setName("unique");
 
-        List<Car> cars = new LinkedList<Car>();
+        List<Car> cars = new LinkedList<>();
         Car car = new Car();
         car.setName("北京吉普");
         cars.add(car);
@@ -66,6 +69,25 @@ public class ClientTest {
 
         service.sendPerson(person,"unique",persons);
     }
+
+    @Test
+    public void testSendPersonAnno() {
+        Person person = new Person();
+        person.setAge(100);
+        person.setName("unique");
+
+        List<Car> cars = new LinkedList<>();
+        Car car = new Car();
+        car.setName("北京吉普");
+        cars.add(car);
+
+        person.setCars(cars);
+        List<Person> persons = new ArrayList<Person>();
+        persons.add(person);
+
+        serviceAnno.sendPerson(person,"unique",persons);
+    }
+
 
     @Test
     public void testPubHello() {

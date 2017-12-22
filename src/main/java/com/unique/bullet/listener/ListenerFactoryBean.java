@@ -17,7 +17,6 @@ import org.apache.rocketmq.common.message.MessageExt;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 public class ListenerFactoryBean implements InitializingBean, DisposableBean {
@@ -31,6 +30,10 @@ public class ListenerFactoryBean implements InitializingBean, DisposableBean {
     private String group;
     private String addresses;
     private int maxReconsumeTimes = 2;
+    //针对topic 的流控,默认最大缓存1000
+    private int pullThresholdForTopic = 1000;
+    //针对topic的流控，默认最大100M
+    private int pullThresholdSizeForTopic = 100;
 
     public void afterPropertiesSet() throws Exception {
         logger.info("rocketMQ consumer init:{}", group);
@@ -45,6 +48,10 @@ public class ListenerFactoryBean implements InitializingBean, DisposableBean {
         consumer.setMessageModel(MessageModelFactory.getMessageModel(messageModel));
         //重试次数
         consumer.setMaxReconsumeTimes(maxReconsumeTimes);
+        //针对topic 的流控
+        consumer.setPullThresholdForTopic(pullThresholdForTopic);
+//      //针对topic的流控，基于消息大小
+        consumer.setPullThresholdSizeForTopic(pullThresholdSizeForTopic);
 
         subscribe(consumer);
         //注册监听器
@@ -159,6 +166,14 @@ public class ListenerFactoryBean implements InitializingBean, DisposableBean {
 
     public void setMaxReconsumeTimes(int maxReconsumeTimes) {
         this.maxReconsumeTimes = maxReconsumeTimes;
+    }
+
+    public void setPullThresholdForTopic(int pullThresholdForTopic) {
+        this.pullThresholdForTopic = pullThresholdForTopic;
+    }
+
+    public void setPullThresholdSizeForTopic(int pullThresholdSizeForTopic) {
+        this.pullThresholdSizeForTopic = pullThresholdSizeForTopic;
     }
 
     @Override
