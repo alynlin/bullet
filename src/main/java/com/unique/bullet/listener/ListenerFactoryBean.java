@@ -73,8 +73,10 @@ public class ListenerFactoryBean implements InitializingBean, DisposableBean {
             //优先使用tag 过滤
             if (StringUtils.isAnyEmpty(listener.getSelector()) || StringUtils.isNoneEmpty(listener.getRoutingKey())) {
                 consumer.subscribe(listener.getDestination(), listener.getRoutingKey());
+                logger.info("订阅{}成功，过滤方式：routingKey：{}",listener.getDestination(),listener.getRoutingKey());
             } else {
                 consumer.subscribe(listener.getDestination(), MessageSelector.bySql(listener.getSelector()));
+                logger.info("订阅{}成功，过滤方式：selector：{}",listener.getDestination(),listener.getSelector());
             }
         }
     }

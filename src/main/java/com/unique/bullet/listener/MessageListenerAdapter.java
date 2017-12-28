@@ -93,8 +93,9 @@ public class MessageListenerAdapter implements MessageListener {
         //验证消息是否已过期
         if (isTll(msg)) {
             if (logger.isDebugEnabled()) {
-                logger.debug("msg is expired:{}:{}", msg.getTopic(), msg.getMsgId());
+                logger.debug("msg is expired:", msg.toString());
             }
+            logger.info("msg is expired:{}:{}", msg.getTopic(), msg.getMsgId());
             return;
         }
         //获取编码方式
@@ -113,12 +114,16 @@ public class MessageListenerAdapter implements MessageListener {
             Method method = clazz.getMethod(methodName, types);
             method.invoke(delegate, args);
         } catch (ClassNotFoundException e) {
+            logger.error("consume message exception, " + msg.toString(), e);
             throw new BulletException(e);
         } catch (NoSuchMethodException e) {
+            logger.error("consume message exception, " + msg.toString(), e);
             throw new BulletException(e);
         } catch (IllegalAccessException e) {
+            logger.error("consume message exception, " + msg.toString(), e);
             throw new BulletException(e);
         } catch (InvocationTargetException e) {
+            logger.error("consume message exception, " + msg.toString(), e);
             throw new BulletException(e);
         }
     }
