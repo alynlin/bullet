@@ -1,26 +1,26 @@
 package com.unique.bullet.serializer;
 
+import com.unique.bullet.common.Constants;
 import com.unique.bullet.serializer.hessian.HessianSerialize;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public final class SerializerFactory {
 
-    private static Map<String, ISerializer> serializerFactory;
-
-    static {
-        serializerFactory = new ConcurrentHashMap<>();
-        serializerFactory.put("jdk", JDKSerializer.getInstance());
-        serializerFactory.put("fst", FSTSerializer.getInstance());
-        serializerFactory.put("hessian", HessianSerialize.getInstance());
-    }
-
     public static ISerializer getSerializer(String codec) {
 
-        ISerializer serializer = serializerFactory.get(codec);
-        if (serializer == null) {
-            return JDKSerializer.getInstance();
+        ISerializer serializer;
+        switch (codec) {
+            case Constants.CODEC_FST:
+                serializer = FSTSerializer.getInstance();
+                break;
+            case Constants.CODEC_JDK:
+                serializer = JDKSerializer.getInstance();
+                break;
+            case Constants.CODEC_HESSIAN:
+                serializer = HessianSerialize.getInstance();
+                break;
+            default:
+                serializer = JDKSerializer.getInstance();
+                break;
         }
         return serializer;
     }

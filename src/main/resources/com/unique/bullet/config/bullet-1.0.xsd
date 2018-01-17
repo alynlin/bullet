@@ -1,7 +1,7 @@
-<xsd:schema xmlns="http://www.unique.com/schema/bullet"
+<xsd:schema xmlns="http://www.99bill.com/schema/bullet"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:beans="http://www.springframework.org/schema/beans"
             xmlns:tool="http://www.springframework.org/schema/tool"
-            targetNamespace="http://www.unique.com/schema/bullet"
+            targetNamespace="http://www.99bill.com/schema/bullet"
             elementFormDefault="qualified" attributeFormDefault="unqualified"
             version="1.0.0">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
@@ -23,13 +23,13 @@
                 <xsd:documentation><![CDATA[ The protocol name. ]]></xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
-        <xsd:attribute name="addresses" type="xsd:string" use="optional">
+        <!--<xsd:attribute name="addresses" type="xsd:string" use="optional">
             <xsd:annotation>
                 <xsd:documentation><![CDATA[
 	List of addresses; e.g. host1:9876,host2:9876 - overrides host/port if supplied.
 					]]></xsd:documentation>
             </xsd:annotation>
-        </xsd:attribute>
+        </xsd:attribute> -->
         <xsd:attribute name="host" type="xsd:string" use="optional">
             <xsd:annotation>
                 <xsd:documentation><![CDATA[
@@ -72,6 +72,8 @@
                 </xsd:restriction>
             </xsd:simpleType>
         </xsd:attribute>
+        <xsd:attribute name="namesrv-domain" type="xsd:string" use="optional" />
+        <xsd:attribute name="namesrv-domain-subgroup" type="xsd:string" use="optional" default="nsaddr" />
     </xsd:complexType>
 
     <xsd:complexType name="publishType">
@@ -155,11 +157,11 @@
                         </xsd:simpleType>
                     </xsd:attribute>
                     <xsd:attribute name="group" type="xsd:string" use="required"/>
-                    <xsd:attribute name="addresses" type="xsd:string" use="required">
+                    <!--<xsd:attribute name="addresses" type="xsd:string" use="optional">
                         <xsd:annotation>
                             <xsd:documentation><![CDATA[List of addresses; e.g. host1:9876,host2:9876 - overrides host/port if supplied.]]></xsd:documentation>
                         </xsd:annotation>
-                    </xsd:attribute>
+                    </xsd:attribute>-->
                     <xsd:attribute name="maxReconsumeTimes" use="optional">
                         <xsd:simpleType>
                             <xsd:annotation>
@@ -173,6 +175,8 @@
                     </xsd:attribute>
                     <xsd:attribute name="pullThresholdForTopic" type="xsd:int" use="optional"/>
                     <xsd:attribute name="pullThresholdSizeForTopic" type="xsd:int" use="optional"/>
+                    <xsd:attribute name="namesrv-domain" type="xsd:string" use="optional" />
+                    <xsd:attribute name="namesrv-domain-subgroup" type="xsd:string" use="optional" default="nsaddr" />
                 </xsd:extension>
             </xsd:complexContent>
         </xsd:complexType>

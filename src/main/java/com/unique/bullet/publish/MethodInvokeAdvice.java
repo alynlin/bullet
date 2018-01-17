@@ -3,11 +3,13 @@ package com.unique.bullet.publish;
 import com.unique.bullet.annotation.support.HandlerMethodAnnoParser;
 import com.unique.bullet.common.Constants;
 import com.unique.bullet.common.SendMode;
+import com.unique.bullet.common.Validators;
 import com.unique.bullet.message.MessageRequest;
 import com.unique.bullet.serializer.ISerializer;
 import com.unique.bullet.serializer.SerializerFactory;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.rocketmq.client.exception.MQBrokerException;
@@ -70,13 +72,21 @@ public class MethodInvokeAdvice implements MethodInterceptor {
         msg.putUserProperty(Constants.CODEC_TAG, codec);
         msg.putUserProperty(Constants.X_MESSAGE_TTL, Long.toString(ttl));
         if (filterProp != null) {
+            Validators.checkFilterProp(filterProp);
             for (Map.Entry<String, String> entry : filterProp.entrySet()) {
-                msg.putUserProperty(entry.getKey(), entry.getValue());
+                if (Constants.MESSAGE_KEYS_NAME.equals(entry.getKey())) {
+                    msg.setKeys(entry.getValue());
+                } else {
+                    msg.putUserProperty(entry.getKey(), entry.getValue());
+                }
             }
         }
         //注解方式过滤
         parseAnnotationFilterValue(invocation, msg);
 
+        if (StringUtils.isAnyEmpty(msg.getKeys())) {
+            msg.setKeys(request.getMessageId());
+        }
         //发送消息
         sendMessage(msg);
 
@@ -98,8 +108,14 @@ public class MethodInvokeAdvice implements MethodInterceptor {
             Map<String, String> filterPropertyMap = HandlerMethodAnnoParser.parseMessageProperty(method, args);
             //添加并更新过滤标识
             if (filterPropertyMap != null) {
+                Validators.checkFilterProp(filterPropertyMap);
                 for (Map.Entry<String, String> entry : filterPropertyMap.entrySet()) {
-                    msg.putUserProperty(entry.getKey(), entry.getValue());
+                    if (Constants.MESSAGE_KEYS_NAME.equals(entry.getKey())) {
+                        msg.setKeys(entry.getValue());
+                    } else {
+                        msg.putUserProperty(entry.getKey(), entry.getValue());
+
+                    }
                 }
             }
         }
@@ -142,8 +158,8 @@ public class MethodInvokeAdvice implements MethodInterceptor {
      * @throws MQBrokerException
      */
     private void send(Message msg) throws InterruptedException, RemotingException, MQClientException, MQBrokerException {
-
         producer.send(msg);
+        logger.info("[{}] send message[msgKeys:{}] to topic[{}] success", producer.getProducerGroup(), msg.getKeys(), msg.getTopic());
     }
 
     /**
@@ -157,6 +173,7 @@ public class MethodInvokeAdvice implements MethodInterceptor {
      */
     private void asynSend(Message msg) throws InterruptedException, RemotingException, MQClientException, MQBrokerException {
         producer.send(msg, sendCallback);
+        logger.info("[{}] send message[msgKeys:{}] to topic[{}] success", producer.getProducerGroup(), msg.getKeys(), msg.getTopic());
     }
 
 
@@ -169,8 +186,8 @@ public class MethodInvokeAdvice implements MethodInterceptor {
      * @throws InterruptedException
      */
     private void sendOneway(Message msg) throws RemotingException, MQClientException, InterruptedException {
-
         producer.sendOneway(msg);
+        logger.info("[{}] send message[msgKeys:{}] to topic[{}] success", producer.getProducerGroup(), msg.getKeys(), msg.getTopic());
     }
 
     public void setCommunicationMode(String communicationMode) {

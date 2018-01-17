@@ -88,7 +88,7 @@ public class MessageListenerAdapter implements MessageListener {
 
     public void onMessage(MessageExt msg) throws BulletException {
         if (logger.isDebugEnabled()) {
-            logger.debug("receive message:{}:{}", msg.getTopic(), msg.getTags());
+            logger.debug("receive message:{}", msg.toString());
         }
         //验证消息是否已过期
         if (isTll(msg)) {
@@ -102,20 +102,14 @@ public class MessageListenerAdapter implements MessageListener {
         ISerializer serializer = SerializerFactory.getSerializer(msg.getUserProperty(Constants.CODEC_TAG));
         byte[] body = msg.getBody();
         MessageRequest request = serializer.deserialize(body);
-        String messageId = request.getMessageId();
-        long timestamp = request.getTimestamp();
         String interfaceName = request.getInterfaceName();
         String methodName = request.getMethodName();
         Object[] args = request.getArgs();
         Class<?>[] types = request.getTypes();
 
         try {
-            Class<?> clazz = Class.forName(interfaceName);
-            Method method = clazz.getMethod(methodName, types);
+            Method method = interfaze.getMethod(methodName, types);
             method.invoke(delegate, args);
-        } catch (ClassNotFoundException e) {
-            logger.error("consume message exception, " + msg.toString(), e);
-            throw new BulletException(e);
         } catch (NoSuchMethodException e) {
             logger.error("consume message exception, " + msg.toString(), e);
             throw new BulletException(e);

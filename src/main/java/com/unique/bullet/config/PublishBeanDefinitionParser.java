@@ -2,6 +2,7 @@ package com.unique.bullet.config;
 
 import com.unique.bullet.common.Constants;
 import com.unique.bullet.common.SendMode;
+import com.unique.bullet.common.Validators;
 import com.unique.bullet.exception.BulletException;
 import com.unique.bullet.listener.MessageListenerAdapter;
 import com.unique.bullet.publish.PublishFactoryBean;
@@ -132,6 +133,7 @@ public class PublishBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
         messagePropertyDef.setSource(parserContext.extractSource(messagePropertyEle));
 
         Map<?, ?> map = parserContext.getDelegate().parseMapElement(messagePropertyEle, messagePropertyDef);
+        Validators.checkFilterProp(map);
         return map;
     }
 }

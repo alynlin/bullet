@@ -4,10 +4,10 @@ import com.unique.bullet.dto.Car;
 import com.unique.bullet.dto.Person;
 import com.unique.bullet.service.IService;
 import com.unique.bullet.service.PublishService;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
@@ -18,16 +18,14 @@ import org.springframework.test.context.support.DirtiesContextTestExecutionListe
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath*:client-rocket.xml"})
 @TestExecutionListeners(listeners = {DependencyInjectionTestExecutionListener.class, DirtiesContextTestExecutionListener.class,
         TransactionalTestExecutionListener.class})
 public class ClientTest {
-    private final static Logger log = LoggerFactory.getLogger(ClientTest.class);
+    private final static Logger log = LogManager.getLogger(ClientTest.class);
 
     @Autowired
     @Qualifier("service")
@@ -42,10 +40,10 @@ public class ClientTest {
     @Test
     public void testSayHello() throws InterruptedException {
 
-//        while (true){
-        service.sayHello("this is bullet msg");
-        Thread.sleep(2);
-//        }
+        for (int i = 1; i < 10; i++) {
+            service.sayHello("this is bullet msg" + i);
+        }
+
 
     }
 
@@ -73,6 +71,7 @@ public class ClientTest {
     @Test
     public void testSendPersonAnno() {
         Person person = new Person();
+        person.setId(UUID.randomUUID().toString());
         person.setAge(100);
         person.setName("unique");
 

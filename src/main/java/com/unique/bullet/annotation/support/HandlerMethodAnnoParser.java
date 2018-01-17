@@ -82,7 +82,8 @@ public class HandlerMethodAnnoParser {
                 return property.value();
             }
             jxpath = jxpath.substring(0, 1).toUpperCase() + jxpath.substring(1);
-            return String.valueOf(obj.getClass().getDeclaredMethod("get" + jxpath).invoke(obj));
+            Object value = obj.getClass().getDeclaredMethod("get" + jxpath).invoke(obj);
+            return value == null ? null : String.valueOf(value);
         } catch (IllegalAccessException e) {
             logger.error(e);
         } catch (InvocationTargetException e) {

@@ -29,7 +29,7 @@ public class ListenerFactoryBean implements InitializingBean, DisposableBean {
     private List<MessageListenerAdapter> messageListener;
     private String group;
     private String addresses;
-    private int maxReconsumeTimes = 2;
+    private int maxReconsumeTimes = 0;
     //针对topic 的流控,默认最大缓存1000
     private int pullThresholdForTopic = 1000;
     //针对topic的流控，默认最大100M
@@ -38,6 +38,7 @@ public class ListenerFactoryBean implements InitializingBean, DisposableBean {
     public void afterPropertiesSet() throws Exception {
         logger.info("rocketMQ consumer init:{}", group);
         initConsumer();
+        logger.info("rocketMQ consumer init:{} success", group);
     }
 
     private void initConsumer() throws MQClientException {
@@ -73,10 +74,10 @@ public class ListenerFactoryBean implements InitializingBean, DisposableBean {
             //优先使用tag 过滤
             if (StringUtils.isAnyEmpty(listener.getSelector()) || StringUtils.isNoneEmpty(listener.getRoutingKey())) {
                 consumer.subscribe(listener.getDestination(), listener.getRoutingKey());
-                logger.info("订阅{}成功，过滤方式：routingKey：{}",listener.getDestination(),listener.getRoutingKey());
+                logger.info("订阅{}成功，过滤方式：routingKey：{}", listener.getDestination(), listener.getRoutingKey());
             } else {
                 consumer.subscribe(listener.getDestination(), MessageSelector.bySql(listener.getSelector()));
-                logger.info("订阅{}成功，过滤方式：selector：{}",listener.getDestination(),listener.getSelector());
+                logger.info("订阅{}成功，过滤方式：selector：{}", listener.getDestination(), listener.getSelector());
             }
         }
     }
@@ -110,6 +111,7 @@ public class ListenerFactoryBean implements InitializingBean, DisposableBean {
                 for (MessageExt msg : msgs) {
                     //消费消息
                     try {
+                        logger.info("[{}] receive message[msgKeys:{}] from topic[{}] success", group, msg.getKeys(), msg.getTopic());
                         getMessageBean(msg).onMessage(msg);
                     } catch (BulletException e) {
                         return ConsumeConcurrentlyStatus.RECONSUME_LATER;

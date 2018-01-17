@@ -3,12 +3,12 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:context="http://www.springframework.org/schema/context"
        xmlns:aop="http://www.springframework.org/schema/aop"
-       xmlns:bullet="http://www.unique.com/schema/bullet"
+       xmlns:bullet="http://www.99bill.com/schema/bullet"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd 
            http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd 
-           http://www.unique.com/schema/bullet http://www.unique.com/schema/bullet/bullet-1.0.xsd">
+           http://www.99bill.com/schema/bullet http://www.99bill.com/schema/bullet/bullet-1.0.xsd">
     <bean id="propertyConfigurer"
           class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
         <property name="location">
@@ -19,13 +19,13 @@
 
     <bean id="serviceImpl" class="com.unique.bullet.service.impl.ServiceImpl"></bean>
     <bullet:listener-container id="listener-container" message-model="CLUSTERING" group="inf_bullet_group_clustering"
-                               addresses="${inf.ifbullet.nameserver.address}">
+                               namesrv-domain="127.0.0.1:8080/app-acms-server" maxReconsumeTimes="1">
         <bullet:listener interface="com.unique.bullet.service.IService" ref="serviceImpl" destination="inf_bullet_test"/>
-        <bullet:listener interface="com.unique.bullet.service.IService" ref="serviceImpl" routingKey="taga" selector="userName='unique' AND userAge &lt;=100" destination="inf_bullet_test_filter"></bullet:listener>
+        <bullet:listener interface="com.unique.bullet.service.IService" ref="serviceImpl" selector="bullet_userName='unique' AND bullet_userAge &lt;=100" destination="inf_bullet_test_filter"></bullet:listener>
     </bullet:listener-container>
 
     <bean id="publishService" class="com.unique.bullet.service.impl.PublishServiceImpl" />
-    <bullet:listener-container id="listener-container2" message-model="BROADCASTING" group="inf_bullet_group_broadcasting" addresses="${inf.ifbullet.nameserver.address}">
+    <bullet:listener-container id="listener-container2" message-model="BROADCASTING" group="inf_bullet_group_broad" namesrv-domain="127.0.0.1:8080/app-acms-server">
         <bullet:listener interface="com.unique.bullet.service.PublishService" ref="publishService" destination="inf_bullet_pub_test"/>
     </bullet:listener-container>
 

@@ -33,6 +33,8 @@ public class ListenerContainerParser extends AbstractSingleBeanDefinitionParser 
     private final static String MAX_RECONSUME_TIMES_ATTRIBUTE = "maxReconsumeTimes";
     private final static String PULL_THRESHOLD_TOPIC_ATTRIBUTE = "pullThresholdForTopic";
     private final static String PULL_THRESHOLDSIZE_TOPIC_ATTRIBUTE = "pullThresholdSizeForTopic";
+    private final static String NAMESRV_DOMAIN_ELEMENT = "namesrv-domain";
+    private final static String NAMESRV_DOMAIN_SUBGROUP_ELEMENT = "namesrv-domain-subgroup";
 
     @Override
     protected Class<?> getBeanClass(Element element) {
@@ -61,10 +63,9 @@ public class ListenerContainerParser extends AbstractSingleBeanDefinitionParser 
         builder.addPropertyValue(GROUP_ATTRIBUTE, group);
 
         String address = element.getAttribute(ADDRESS_ATTRIBUTE);
-        if (StringUtils.isAnyEmpty(address)) {
-            throw new BulletException("<bullet:listener-container> " + ADDRESS_ATTRIBUTE + " attribute can't be blank");
+        if (StringUtils.isNoneEmpty(address)) {
+            builder.addPropertyValue(ADDRESS_ATTRIBUTE, address);
         }
-        builder.addPropertyValue(ADDRESS_ATTRIBUTE, address);
 
         String maxReconsumeTimes = element.getAttribute(MAX_RECONSUME_TIMES_ATTRIBUTE);
         if (StringUtils.isNoneEmpty(maxReconsumeTimes)) {
@@ -78,6 +79,14 @@ public class ListenerContainerParser extends AbstractSingleBeanDefinitionParser 
         String pullThresholdSizeForTopic = element.getAttribute(PULL_THRESHOLDSIZE_TOPIC_ATTRIBUTE);
         if (!StringUtils.isAnyEmpty(pullThresholdSizeForTopic)) {
             builder.addPropertyValue(PULL_THRESHOLDSIZE_TOPIC_ATTRIBUTE, pullThresholdSizeForTopic);
+        }
+        String namesrvDdomain = element.getAttribute(NAMESRV_DOMAIN_ELEMENT);
+        if (StringUtils.isNoneEmpty(namesrvDdomain)) {
+            System.setProperty("rocketmq.namesrv.domain", namesrvDdomain);
+        }
+        String namesrvDomainSubgroup = element.getAttribute(NAMESRV_DOMAIN_SUBGROUP_ELEMENT);
+        if (StringUtils.isNoneEmpty(namesrvDomainSubgroup)) {
+            System.setProperty("rocketmq.namesrv.domain.subgroup", namesrvDomainSubgroup);
         }
 
         NodeList childNodes = element.getChildNodes();

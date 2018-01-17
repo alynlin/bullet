@@ -1,11 +1,5 @@
 package com.unique.bullet.common;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.*;
-import java.util.UUID;
-
 public class Constants {
     public final static int CPUS = Runtime.getRuntime().availableProcessors();
     public final static int CAPACITY = 5 * CPUS;
@@ -21,7 +15,6 @@ public class Constants {
     public final static String DEFAULT_ROUTINGKEY = "DEFAULT";
     public final static long DEFAULT_TTL = -1;
     public final static String DEFAULT_USERNAME = "guest";
-    private final static Logger log = LoggerFactory.getLogger(Constants.class);
     public final static int MAXIMUMCOREPOOLSIZE = 5 * CPUS;
     public final static int NEED_ZIP = 1024;
     public final static String PEER_TO_PEER_TAG = "x-message-forward";
@@ -37,4 +30,8 @@ public class Constants {
     public final static String MESSAGE_MODEL_CLUSTERING = "CLUSTERING";
     //消费方式 广播方式
     public final static String MESSAGE_MODEL_BROADCASTING = "BROADCASTING";
+    //过滤属性前缀，防止与保留字段冲突
+    public final static String PROP_FREFIX = "bullet_";
+    //用户属性保留字段，用于查询追踪消息
+    public final static String MESSAGE_KEYS_NAME = "bullet_messageKeys";
 }

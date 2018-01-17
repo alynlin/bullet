@@ -2,11 +2,11 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:task="http://www.springframework.org/schema/task"
-       xmlns:bullet="http://www.unique.com/schema/bullet"
+       xmlns:bullet="http://www.99bill.com/schema/bullet"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
            http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd
-           http://www.unique.com/schema/bullet http://www.unique.com/schema/bullet/bullet-1.0.xsd">
+           http://www.99bill.com/schema/bullet http://www.99bill.com/schema/bullet/bullet-1.0.xsd">
     <bean id="propertyConfigurer"
           class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
         <property name="location">
@@ -18,23 +18,23 @@
     <task:executor id="executor" keep-alive="200" pool-size="1000-1000" queue-capacity="5000"
                    rejection-policy="CALLER_RUNS"/>
 
-    <bullet:protocol id="rocket" sysgroup="inf_bullet_group" addresses="192.168.55.66:9876" />
+    <bullet:protocol id="rocket" sysgroup="inf_bullet_group" namesrv-domain="127.0.0.1:8080/app-acms-server" />
 
     <bean id="callBack" class="com.unique.bullet.client.SendCallBackTest" />
     <bullet:publish id="service" interface="com.unique.bullet.service.IService" destination="inf_bullet_test"
-                    connection="rocket" send-mode="ASYNC" routingKey="unique" sendCallback="callBack" codec="hessian" delayTimeLevel="5" filter-annotation="true">
+                    connection="rocket" send-mode="ASYNC" sendCallback="callBack" codec="hessian" filter-annotation="true">
         <bullet:filter-prop>
-            <entry key="userName" value="bobo"></entry>
+            <entry key="bullet_userName" value="bobo"></entry>
         </bullet:filter-prop>
     </bullet:publish>
     <bullet:publish id="serviceAnno" interface="com.unique.bullet.service.IService" destination="inf_bullet_test_filter"
-                    connection="rocket" send-mode="SYNC" routingKey="taga" codec="fst" filter-annotation="true">
+                    connection="rocket" send-mode="SYNC" codec="hessian" filter-annotation="true">
         <bullet:filter-prop>
-            <entry key="userName" value="bobo"></entry>
+            <entry key="bullet_userName" value="bobo"></entry>
         </bullet:filter-prop>
     </bullet:publish>
 
-    <bullet:publish id="pubservice" interface="com.unique.bullet.service.PublishService" routingKey="taga"
+    <bullet:publish id="pubservice" interface="com.unique.bullet.service.PublishService"
                     destination="inf_bullet_pub_test" connection="rocket" send-mode="SYNC"/>
 
 </beans>

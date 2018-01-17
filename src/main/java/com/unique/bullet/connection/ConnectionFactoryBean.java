@@ -38,6 +38,7 @@ public class ConnectionFactoryBean implements InitializingBean, FactoryBean, Pri
         producer.setSendMsgTimeout(sendMsgTimeout);
 
         producer.start();
+        logger.info("rocketmq producer init success");
     }
 
     public String getAddresses() {

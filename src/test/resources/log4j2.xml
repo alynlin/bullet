@@ -7,8 +7,8 @@
                     pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5p %c{2}(%F:%L) - %m%n" />
         </Console>
 
-        <RollingFile name="fixedTimeFileAppender" fileName="/opt/apache-tomcat-7.0.82/logs/testapp.log"
-                     filePattern="/opt/apache-tomcat-7.0.82/logs/testapp.log.%d{yyyy-MM-dd}.%i.log.gz">
+        <RollingFile name="fixedTimeFileAppender" fileName="/opt/bullet/logs/bullet.log"
+                     filePattern="/opt/bullet/logs/bullet.log.%d{yyyy-MM-dd}.%i.log.gz">
             <Filters>
                 <!--文件只输出info及以上（onMatch）级别的信息，其它的(onMismatch)直接拒绝-->
                 <ThresholdFilter level="info" onMatch="ACCEPT" onMismatch="DENY"/>
@@ -29,6 +29,7 @@
     <Loggers>
         <Root level="debug">
             <AppenderRef ref="console" />
+            <AppenderRef ref="async" />
         </Root>
     </Loggers>
 </Configuration>
