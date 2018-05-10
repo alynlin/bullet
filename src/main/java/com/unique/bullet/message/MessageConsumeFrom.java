@@ -7,9 +7,8 @@ import org.apache.rocketmq.common.protocol.heartbeat.MessageModel;
 
 /**
  * class_name: MessageConsumeFrom
- * package: com.bill99.bullet.message
  * describe: 起始消费位置
- * creat_user: unique@99bill
+ * creat_user: unique
  * creat_date: 2018/3/15
  * creat_time: 10:40
  **/

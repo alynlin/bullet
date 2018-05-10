@@ -1,7 +1,7 @@
-<xsd:schema xmlns="http://www.99bill.com/schema/bullet"
+<xsd:schema xmlns="http://www.unique.com/schema/bullet"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:beans="http://www.springframework.org/schema/beans"
             xmlns:tool="http://www.springframework.org/schema/tool"
-            targetNamespace="http://www.99bill.com/schema/bullet"
+            targetNamespace="http://www.unique.com/schema/bullet"
             elementFormDefault="qualified" attributeFormDefault="unqualified"
             version="1.0.0">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
