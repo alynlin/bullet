@@ -1,8 +1,11 @@
 package com.unique.bullet.message;
 
+import lombok.Data;
+
 import java.io.Serializable;
 import java.util.UUID;
 
+@Data
 public class MessageRequest extends MessageHeader implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -24,37 +27,4 @@ public class MessageRequest extends MessageHeader implements Serializable {
         super();
         super.setMessageId(UUID.randomUUID().toString());
     }
-
-    public Object[] getArgs() {
-        return args;
-    }
-
-    public String getInterfaceName() {
-        return interfaceName;
-    }
-
-    public String getMethodName() {
-        return methodName;
-    }
-
-    public Class<?>[] getTypes() {
-        return types;
-    }
-
-    public void setArgs(Object[] args) {
-        this.args = args;
-    }
-
-    public void setInterfaceName(String interfaceName) {
-        this.interfaceName = interfaceName;
-    }
-
-    public void setMethodName(String methodName) {
-        this.methodName = methodName;
-    }
-
-    public void setTypes(Class<?>[] types) {
-        this.types = types;
-    }
-
 }

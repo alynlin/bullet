@@ -34,4 +34,12 @@ public class Constants {
     public final static String PROP_FREFIX = "bullet_";
     //用户属性保留字段，用于查询追踪消息
     public final static String MESSAGE_KEYS_NAME = "bullet_messageKeys";
+
+    public final static String CONSUME_FROM_FIRST_OFFSET = "FIRST_OFFSET";
+
+    public final static String CONSUME_FROM_LAST_OFFSET = "LAST_OFFSET";
+    //用于dynatrace
+    public final static String DYNATRACE_TAG_KEY = "DYNATRACE_TAG";
+
+    public static String IS_TRACE_FLAG = "IS_TRACE";
 }

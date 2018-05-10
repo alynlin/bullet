@@ -1,7 +1,11 @@
 package com.unique.bullet.listener;
 
+import com.unique.bullet.common.SystemConfig;
 import com.unique.bullet.exception.BulletException;
+import com.unique.bullet.message.MessageConsumeFrom;
 import com.unique.bullet.message.MessageModelFactory;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -12,13 +16,14 @@ import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyContext;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
 import org.apache.rocketmq.client.consumer.listener.MessageListenerConcurrently;
 import org.apache.rocketmq.client.exception.MQClientException;
-import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 
 import java.util.List;
 
+@Getter
+@Setter
 public class ListenerFactoryBean implements InitializingBean, DisposableBean {
 
     private static final Logger logger = LogManager.getLogger(ListenerFactoryBean.class);
@@ -28,15 +33,26 @@ public class ListenerFactoryBean implements InitializingBean, DisposableBean {
     private String messageModel;
     private List<MessageListenerAdapter> messageListener;
     private String group;
+    //消息去重服务
+    private Object idempotentService;
+    //消息去重有效期,单位秒
+    private int idempotentTTL;
+    private int idempotentLevel;
     private String addresses;
     private int maxReconsumeTimes = 0;
     //针对topic 的流控,默认最大缓存1000
     private int pullThresholdForTopic = 1000;
     //针对topic的流控，默认最大100M
     private int pullThresholdSizeForTopic = 100;
+    private String consumeFromWhere;
+    private String namesrvDdomain;
+    private String namesrvDomainSubgroup;
 
+    @Override
     public void afterPropertiesSet() throws Exception {
         logger.info("rocketMQ consumer init:{}", group);
+        System.setProperty("rocketmq.namesrv.domain", namesrvDdomain);
+        System.setProperty("rocketmq.namesrv.domain.subgroup", namesrvDomainSubgroup);
         initConsumer();
         logger.info("rocketMQ consumer init:{} success", group);
     }
@@ -44,15 +60,20 @@ public class ListenerFactoryBean implements InitializingBean, DisposableBean {
     private void initConsumer() throws MQClientException {
         consumer = new DefaultMQPushConsumer(group);
         consumer.setNamesrvAddr(addresses);
-        consumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET);
         //消费类型（集群消费、广播消费）
         consumer.setMessageModel(MessageModelFactory.getMessageModel(messageModel));
+        consumer.setConsumeFromWhere(MessageConsumeFrom.getConsumeFromWhere(consumeFromWhere, consumer.getMessageModel()));
         //重试次数
         consumer.setMaxReconsumeTimes(maxReconsumeTimes);
         //针对topic 的流控
         consumer.setPullThresholdForTopic(pullThresholdForTopic);
 //      //针对topic的流控，基于消息大小
         consumer.setPullThresholdSizeForTopic(pullThresholdSizeForTopic);
+        //轮询从NameServer获取路由信息的时间间隔
+        consumer.setPollNameServerInterval(SystemConfig.POLL_NAMESERVER_INTERVAL);
+        consumer.setVipChannelEnabled(false);
+        //持久化消费进度的间隔
+        consumer.setPersistConsumerOffsetInterval(2000);
 
         subscribe(consumer);
         //注册监听器
@@ -106,78 +127,37 @@ public class ListenerFactoryBean implements InitializingBean, DisposableBean {
     private void registerMessageListener(MQPushConsumer consumer) {
         consumer.registerMessageListener(new MessageListenerConcurrently() {
 
+            @Override
             public ConsumeConcurrentlyStatus consumeMessage(List<MessageExt> msgs,
                                                             ConsumeConcurrentlyContext context) {
+                IdempotentService uniqueService = null;
                 for (MessageExt msg : msgs) {
                     //消费消息
+                    String msgOffset = msg.getTopic() + ":" + msg.getQueueId() + ":" + msg.getQueueOffset();
                     try {
-                        logger.info("[{}] receive message[msgKeys:{}] from topic[{}] success", group, msg.getKeys(), msg.getTopic());
+                        //消息去重
+                        /*if (idempotentService != null) {
+                            uniqueService = IdempotentService.getInstance();
+                            uniqueService.setUniqueModuleService(idempotentService);
+                            if (!uniqueService.isUnique(group, msg.getKeys(), idempotentTTL, idempotentLevel)) {
+                                logger.warn("[{}] comsume message[msgKeys:{}] from topic[{}] repeated", group, msg.getKeys(), msgOffset);
+                                continue;
+                            }
+                        }*/
+                        logger.info("[{}] comsume message[msgKeys:{}] from topic[{}]", group, msg.getKeys(), msgOffset);
                         getMessageBean(msg).onMessage(msg);
+                        logger.info("[{}] comsume message[msgKeys:{}] from topic[{}] success", group, msg.getKeys(), msgOffset);
                     } catch (BulletException e) {
+                        logger.error("[{}] comsume message[msgKeys:{}] from topic[{}] error", group, msg.getKeys(), msgOffset);
+                        /*if (idempotentService != null) {
+                            uniqueService.remove(group, msg.getKeys());
+                        }*/
                         return ConsumeConcurrentlyStatus.RECONSUME_LATER;
                     }
                 }
                 return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
             }
         });
-    }
-
-
-    public String getCodec() {
-        return codec;
-    }
-
-
-    public Class<?> getInterface() {
-        return interfaze;
-    }
-
-    public boolean isSingleton() {
-        return true;
-    }
-
-    public void setCodec(String codec) {
-        this.codec = codec;
-    }
-
-    public void setInterface(Class<?> interfaze) {
-        this.interfaze = interfaze;
-    }
-
-    public String getMessageModel() {
-        return messageModel;
-    }
-
-    public void setMessageModel(String messageModel) {
-        this.messageModel = messageModel;
-    }
-
-    public List<MessageListenerAdapter> getMessageListener() {
-        return messageListener;
-    }
-
-    public void setMessageListener(List<MessageListenerAdapter> messageListener) {
-        this.messageListener = messageListener;
-    }
-
-    public void setGroup(String group) {
-        this.group = group;
-    }
-
-    public void setAddresses(String addresses) {
-        this.addresses = addresses;
-    }
-
-    public void setMaxReconsumeTimes(int maxReconsumeTimes) {
-        this.maxReconsumeTimes = maxReconsumeTimes;
-    }
-
-    public void setPullThresholdForTopic(int pullThresholdForTopic) {
-        this.pullThresholdForTopic = pullThresholdForTopic;
-    }
-
-    public void setPullThresholdSizeForTopic(int pullThresholdSizeForTopic) {
-        this.pullThresholdSizeForTopic = pullThresholdSizeForTopic;
     }
 
     @Override

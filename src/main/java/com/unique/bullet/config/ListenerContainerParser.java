@@ -7,6 +7,7 @@ import com.unique.bullet.listener.MessageListenerAdapter;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
+import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedList;
@@ -35,6 +36,10 @@ public class ListenerContainerParser extends AbstractSingleBeanDefinitionParser 
     private final static String PULL_THRESHOLDSIZE_TOPIC_ATTRIBUTE = "pullThresholdSizeForTopic";
     private final static String NAMESRV_DOMAIN_ELEMENT = "namesrv-domain";
     private final static String NAMESRV_DOMAIN_SUBGROUP_ELEMENT = "namesrv-domain-subgroup";
+    private final static String CONSUME_FROM_WHERE = "consume-from-where";
+    private final static String IDEMPOTENT_SERVICE = "idempotent-service";
+    private final static String IDEMPOTENT_TTL = "idempotent-ttl";
+    private final static String IDEMPOTENT_LEVEL = "idempotent-level";
 
     @Override
     protected Class<?> getBeanClass(Element element) {
@@ -62,6 +67,21 @@ public class ListenerContainerParser extends AbstractSingleBeanDefinitionParser 
         }
         builder.addPropertyValue(GROUP_ATTRIBUTE, group);
 
+        String idempotentService = element.getAttribute(IDEMPOTENT_SERVICE);
+        if (StringUtils.isNoneEmpty(idempotentService)) {
+            builder.addPropertyValue("idempotentService", new RuntimeBeanReference(idempotentService));
+        }
+
+        String idempotentTTL = element.getAttribute(IDEMPOTENT_TTL);
+        if (StringUtils.isNoneEmpty(idempotentTTL)) {
+            builder.addPropertyValue("idempotentTTL", idempotentTTL);
+        }
+
+        String idempotentLevel = element.getAttribute(IDEMPOTENT_LEVEL);
+        if (StringUtils.isNoneEmpty(idempotentLevel)) {
+            builder.addPropertyValue("idempotentLevel", idempotentLevel);
+        }
+
         String address = element.getAttribute(ADDRESS_ATTRIBUTE);
         if (StringUtils.isNoneEmpty(address)) {
             builder.addPropertyValue(ADDRESS_ATTRIBUTE, address);
@@ -82,15 +102,18 @@ public class ListenerContainerParser extends AbstractSingleBeanDefinitionParser 
         }
         String namesrvDdomain = element.getAttribute(NAMESRV_DOMAIN_ELEMENT);
         if (StringUtils.isNoneEmpty(namesrvDdomain)) {
-            System.setProperty("rocketmq.namesrv.domain", namesrvDdomain);
+            builder.addPropertyValue("namesrvDdomain", new TypedStringValue(namesrvDdomain));
         }
         String namesrvDomainSubgroup = element.getAttribute(NAMESRV_DOMAIN_SUBGROUP_ELEMENT);
         if (StringUtils.isNoneEmpty(namesrvDomainSubgroup)) {
-            System.setProperty("rocketmq.namesrv.domain.subgroup", namesrvDomainSubgroup);
+            builder.addPropertyValue("namesrvDomainSubgroup", new TypedStringValue(namesrvDomainSubgroup));
         }
 
+        String consumeFromWhere = element.getAttribute(CONSUME_FROM_WHERE);
+        builder.addPropertyValue("consumeFromWhere", consumeFromWhere);
+
         NodeList childNodes = element.getChildNodes();
-        ManagedList<Object> listeners = new ManagedList(childNodes.getLength());
+        ManagedList listeners = new ManagedList(childNodes.getLength());
         listeners.setSource(parserContext.extractSource(element));
         listeners.setMergeEnabled(Boolean.TRUE);
         for (int i = 0; i < childNodes.getLength(); i++) {

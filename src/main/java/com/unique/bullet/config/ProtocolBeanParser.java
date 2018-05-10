@@ -16,8 +16,6 @@ public class ProtocolBeanParser extends AbstractSingleBeanDefinitionParser {
 
     private final static Logger logger = LogManager.getLogger(ProtocolBeanParser.class);
 
-    private final static String USERNAME_ATTRIBUTE = "username";
-    private final static String PASSWORD_ATTRIBUTE = "password";
     private final static String ADDRESS_ATTRIBUTE = "addresses";
     private final static String SYSTEM_GROUP = "sysgroup";
     private final static String PERMITS_SIZE_ATTRIBUTE = "permits-size";
@@ -34,17 +32,6 @@ public class ProtocolBeanParser extends AbstractSingleBeanDefinitionParser {
     protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
         AbstractBeanDefinition beanDefinition = builder.getRawBeanDefinition();
         beanDefinition.setBeanClass(ConnectionFactoryBean.class);
-        String username = element.getAttribute(USERNAME_ATTRIBUTE);
-        if (StringUtils.isAnyEmpty(username)) {
-            username = Constants.DEFAULT_USERNAME;
-        }
-        builder.addPropertyValue(USERNAME_ATTRIBUTE, username);
-        //
-        String password = element.getAttribute(PASSWORD_ATTRIBUTE);
-        if (StringUtils.isAnyEmpty(password)) {
-            password = Constants.DEFAULT_PASSWORD;
-        }
-        builder.addPropertyValue(PASSWORD_ATTRIBUTE, password);
 
         String group = element.getAttribute(SYSTEM_GROUP);
         if (StringUtils.isAnyEmpty(group)) {

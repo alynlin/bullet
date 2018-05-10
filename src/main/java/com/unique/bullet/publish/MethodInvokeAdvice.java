@@ -16,6 +16,7 @@ import org.apache.rocketmq.client.exception.MQBrokerException;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.apache.rocketmq.client.producer.SendCallback;
+import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.common.message.Message;
 import org.apache.rocketmq.remoting.exception.RemotingException;
 
@@ -49,6 +50,7 @@ public class MethodInvokeAdvice implements MethodInterceptor {
         this.destination = destination;
     }
 
+    @Override
     public Object invoke(MethodInvocation invocation) throws Throwable {
 
         Object[] args = invocation.getArguments();
@@ -88,9 +90,7 @@ public class MethodInvokeAdvice implements MethodInterceptor {
             msg.setKeys(request.getMessageId());
         }
         //发送消息
-        sendMessage(msg);
-
-        return null;
+        return sendMessage(msg);
     }
 
     /**
@@ -128,38 +128,42 @@ public class MethodInvokeAdvice implements MethodInterceptor {
      * @throws MQClientException
      * @throws MQBrokerException
      */
-    private void sendMessage(Message msg) throws InterruptedException, RemotingException, MQClientException, MQBrokerException {
+    private boolean sendMessage(Message msg) throws InterruptedException, RemotingException, MQClientException, MQBrokerException {
+        boolean sendOk = true;
         switch (communicationMode) {
             case SendMode.ASYNC:
                 //异步方式发送消息
-                asynSend(msg);
+                sendOk = asynSend(msg);
                 break;
             case SendMode.ONEWAY:
-                sendOneway(msg);
+                sendOk = sendOneway(msg);
                 break;
             case SendMode.SYNC:
                 //同步方式发送消息
-                send(msg);
+                sendOk = send(msg);
                 break;
             default:
                 //默认使用异步方式
-                asynSend(msg);
+                sendOk = asynSend(msg);
                 break;
         }
+        return sendOk;
     }
 
     /**
-     * 同步发送消息
+     * 同步发送消息，不抛出异常，代表发送成功
      *
      * @param msg Message to send
+     * @return 不抛出异常，代表发送成功
      * @throws InterruptedException
      * @throws RemotingException
      * @throws MQClientException
      * @throws MQBrokerException
      */
-    private void send(Message msg) throws InterruptedException, RemotingException, MQClientException, MQBrokerException {
-        producer.send(msg);
-        logger.info("[{}] send message[msgKeys:{}] to topic[{}] success", producer.getProducerGroup(), msg.getKeys(), msg.getTopic());
+    private boolean send(Message msg) throws InterruptedException, RemotingException, MQClientException, MQBrokerException {
+        SendResult sendResult = producer.send(msg);
+        logger.info("[{}] send message[msgKeys:{}] to topic[{}] success sendResult[{}]", producer.getProducerGroup(), msg.getKeys(), msg.getTopic(), sendResult.getSendStatus());
+        return true;
     }
 
     /**
@@ -171,9 +175,10 @@ public class MethodInvokeAdvice implements MethodInterceptor {
      * @throws MQClientException
      * @throws MQBrokerException
      */
-    private void asynSend(Message msg) throws InterruptedException, RemotingException, MQClientException, MQBrokerException {
+    private boolean asynSend(Message msg) throws InterruptedException, RemotingException, MQClientException, MQBrokerException {
         producer.send(msg, sendCallback);
-        logger.info("[{}] send message[msgKeys:{}] to topic[{}] success", producer.getProducerGroup(), msg.getKeys(), msg.getTopic());
+        logger.info("[{}] asynSend message[msgKeys:{}] to topic[{}] success", producer.getProducerGroup(), msg.getKeys(), msg.getTopic());
+        return true;
     }
 
 
@@ -185,9 +190,10 @@ public class MethodInvokeAdvice implements MethodInterceptor {
      * @throws MQClientException
      * @throws InterruptedException
      */
-    private void sendOneway(Message msg) throws RemotingException, MQClientException, InterruptedException {
+    private boolean sendOneway(Message msg) throws RemotingException, MQClientException, InterruptedException {
         producer.sendOneway(msg);
-        logger.info("[{}] send message[msgKeys:{}] to topic[{}] success", producer.getProducerGroup(), msg.getKeys(), msg.getTopic());
+        logger.info("[{}] sendOneway message[msgKeys:{}] to topic[{}] success", producer.getProducerGroup(), msg.getKeys(), msg.getTopic());
+        return true;
     }
 
     public void setCommunicationMode(String communicationMode) {

@@ -9,12 +9,14 @@ public class BulletSendCallBack implements SendCallback {
 
     private static final Logger logger = LogManager.getLogger(BulletSendCallBack.class);
 
+    @Override
     public void onSuccess(SendResult sendResult) {
         if (logger.isDebugEnabled()) {
             logger.debug(sendResult.getMsgId());
         }
     }
 
+    @Override
     public void onException(Throwable e) {
         logger.error(e);
     }

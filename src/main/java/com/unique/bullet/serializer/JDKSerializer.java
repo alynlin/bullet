@@ -17,6 +17,7 @@ public class JDKSerializer implements ISerializer {
         return SingletonHolder.INSTANCE;
     }
 
+    @Override
     public byte[] serialize(Serializable obj) throws BulletException {
         if (obj == null) {
             return null;
@@ -55,6 +56,7 @@ public class JDKSerializer implements ISerializer {
         return bytes;
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     public <T> T deserialize(byte[] bytes) throws BulletException {
         if (bytes == null || bytes.length <= 0) {

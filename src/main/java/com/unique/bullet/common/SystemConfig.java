@@ -12,5 +12,7 @@ public class SystemConfig {
             "com.rocketmq.remoting.clientOnewaySemaphoreValue";
 
     public static final String ROCKETMQ_CLIENT_LOGLEVEL = "rocketmq.client.logLevel";
+    //轮询从NameServer获取路由信息的时间间隔
+    public static int POLL_NAMESERVER_INTERVAL = 10000;
 
 }

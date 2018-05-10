@@ -8,6 +8,7 @@ import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 public class BulletNamespaceHandler extends NamespaceHandlerSupport {
 
 
+    @Override
     public void init() {
         SystemInit.init();
         registerBeanDefinitionParser("publish", new PublishBeanDefinitionParser());

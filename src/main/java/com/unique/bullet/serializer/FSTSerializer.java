@@ -24,7 +24,11 @@ public class FSTSerializer implements ISerializer {
         if (obj == null) {
             return null;
         }
-        return fst.asByteArray(obj);
+        try {
+            return fst.asByteArray(obj);
+        } catch (Throwable e) {
+            throw new BulletException(e);
+        }
     }
 
     @Override
@@ -32,6 +36,10 @@ public class FSTSerializer implements ISerializer {
         if (bytes == null || bytes.length <= 0) {
             return null;
         }
-        return (T) fst.asObject(bytes);
+        try {
+            return (T) fst.asObject(bytes);
+        } catch (Throwable e) {
+            throw new BulletException(e);
+        }
     }
 }

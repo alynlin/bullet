@@ -86,6 +86,7 @@ public class MessageListenerAdapter implements MessageListener {
         return selector;
     }
 
+    @Override
     public void onMessage(MessageExt msg) throws BulletException {
         if (logger.isDebugEnabled()) {
             logger.debug("receive message:{}", msg.toString());

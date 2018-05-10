@@ -6,6 +6,10 @@ import org.apache.rocketmq.common.protocol.heartbeat.MessageModel;
 public class MessageModelFactory {
 
     public static MessageModel getMessageModel(String model) {
+        //默认使用集群方式消费
+        if (model == null) {
+            return MessageModel.CLUSTERING;
+        }
 
         switch (model) {
             //集群模式

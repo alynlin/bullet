@@ -1,6 +1,8 @@
 package com.unique.bullet.publish;
 
 import com.unique.bullet.common.SendMode;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.apache.rocketmq.client.producer.SendCallback;
 import org.springframework.aop.framework.ProxyFactory;
@@ -14,6 +16,8 @@ import org.springframework.core.PriorityOrdered;
 
 import java.util.Map;
 
+@Setter
+@Getter
 public class PublishFactoryBean implements FactoryBean, InitializingBean, BeanClassLoaderAware, ApplicationContextAware, PriorityOrdered {
 
     private ApplicationContext applicationContext;
@@ -32,7 +36,7 @@ public class PublishFactoryBean implements FactoryBean, InitializingBean, BeanCl
     //消息地址，topic 名称
     private String destination;
     //交互方式，异步、同步、发送不确认
-    private String communicationMode;
+    private String communicationMode = SendMode.SYNC;
     //消息延迟级别
     private int delayTimeLevel;
     //消息过滤标识
@@ -43,12 +47,13 @@ public class PublishFactoryBean implements FactoryBean, InitializingBean, BeanCl
     private boolean filterAnnotation = false;
 
 
+    @Override
     public void afterPropertiesSet() throws Exception {
         String interfaceName = interfaze.getName();
 
         ProxyFactory proxyFactory = new ProxyFactory();
         proxyFactory.setOptimize(false);
-        proxyFactory.addInterface(getInterface());
+        proxyFactory.addInterface(interfaze);
         MethodInvokeAdvice advice = new MethodInvokeAdvice(interfaceName, connection, getRoutingKey(), codec, getTtl(), getDestination());
         advice.setCommunicationMode(communicationMode);
         advice.setDelayTimeLevel(delayTimeLevel);
@@ -61,97 +66,33 @@ public class PublishFactoryBean implements FactoryBean, InitializingBean, BeanCl
         proxy = proxyFactory.getProxy(classLoader);
     }
 
-    public String getCodec() {
-        return codec;
-    }
-
-
-    public Class<?> getInterface() {
-        return interfaze;
-    }
-
+    @Override
     public Object getObject() throws Exception {
         return proxy;
     }
 
+    @Override
     public Class<?> getObjectType() {
         return interfaze;
     }
 
+    @Override
     public int getOrder() {
         return 0;
     }
 
-    public DefaultMQProducer getConnection() {
-        return connection;
-    }
-
-    public void setConnection(DefaultMQProducer connection) {
-        this.connection = connection;
-    }
-
-    public String getRoutingKey() {
-        return routingKey;
-    }
-
-    public long getTtl() {
-        return ttl;
-    }
-
+    @Override
     public boolean isSingleton() {
         return true;
     }
 
+    @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
     }
 
+    @Override
     public void setBeanClassLoader(ClassLoader classLoader) {
         this.classLoader = classLoader;
-    }
-
-    public void setCodec(String codec) {
-        this.codec = codec;
-    }
-
-
-    public void setInterface(Class<?> interfaze) {
-        this.interfaze = interfaze;
-    }
-
-    public void setRoutingKey(String routingKey) {
-        this.routingKey = routingKey;
-    }
-
-    public void setTtl(long ttl) {
-        this.ttl = ttl;
-    }
-
-    public String getDestination() {
-        return destination;
-    }
-
-    public void setDestination(String destination) {
-        this.destination = destination;
-    }
-
-    public void setCommunicationMode(String communicationMode) {
-        this.communicationMode = communicationMode;
-    }
-
-    public void setDelayTimeLevel(int delayTimeLevel) {
-        this.delayTimeLevel = delayTimeLevel;
-    }
-
-    public void setFilterProp(Map<String, String> filterProp) {
-        this.filterProp = filterProp;
-    }
-
-    public void setSendCallback(SendCallback sendCallback) {
-        this.sendCallback = sendCallback;
-    }
-
-    public void setFilterAnnotation(boolean filterAnnotation) {
-        this.filterAnnotation = filterAnnotation;
     }
 }

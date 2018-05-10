@@ -177,6 +177,35 @@
                     <xsd:attribute name="pullThresholdSizeForTopic" type="xsd:int" use="optional"/>
                     <xsd:attribute name="namesrv-domain" type="xsd:string" use="optional" />
                     <xsd:attribute name="namesrv-domain-subgroup" type="xsd:string" use="optional" default="nsaddr" />
+                    <xsd:attribute name="consume-from-where" use="optional">
+                        <xsd:simpleType>
+                            <xsd:restriction base="xsd:string">
+                                <xsd:enumeration value="FIRST_OFFSET"/>
+                                <xsd:enumeration value="LAST_OFFSET"/>
+                            </xsd:restriction>
+                        </xsd:simpleType>
+                    </xsd:attribute>
+                    <xsd:attribute name="idempotent-service" type="xsd:string" use="optional">
+                        <xsd:annotation>
+                            <xsd:documentation><![CDATA[消息去重服务，依赖if-unique.]]></xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:attribute>
+                    <xsd:attribute name="idempotent-ttl" type="xsd:int" use="optional" default="0">
+                        <xsd:annotation>
+                            <xsd:documentation><![CDATA[消息去重有效期，单位秒.]]></xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:attribute>
+                    <xsd:attribute name="idempotent-level" use="optional">
+                        <xsd:annotation>
+                            <xsd:documentation><![CDATA[消息幂等级别，0：幂等服务异常，仍继续消费，1幂等服务异常，不消费消息：.]]></xsd:documentation>
+                        </xsd:annotation>
+                        <xsd:simpleType>
+                            <xsd:restriction base="xsd:int">
+                                <xsd:enumeration value="0"/>
+                                <xsd:enumeration value="1"/>
+                            </xsd:restriction>
+                        </xsd:simpleType>
+                    </xsd:attribute>
                 </xsd:extension>
             </xsd:complexContent>
         </xsd:complexType>

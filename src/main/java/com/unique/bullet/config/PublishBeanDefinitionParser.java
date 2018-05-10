@@ -81,7 +81,7 @@ public class PublishBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
         }
         builder.addPropertyValue(DESTINATION_ATTRIBUTE, destination);
 
-        //编码方式，不指定的情况下，默认使用jdk
+        //编码方式，不指定的情况下，默认使用hessian
         String codec = element.getAttribute(CODEC_ATTRIBUTE);
         if (StringUtils.isAnyEmpty(codec)) {
             codec = Constants.DEFAULT_CODEC;
