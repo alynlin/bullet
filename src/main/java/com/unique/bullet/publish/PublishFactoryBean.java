@@ -53,7 +53,7 @@ public class PublishFactoryBean implements FactoryBean, InitializingBean, BeanCl
 
         ProxyFactory proxyFactory = new ProxyFactory();
         proxyFactory.setOptimize(false);
-        proxyFactory.addInterface(interfaze);
+        proxyFactory.addInterface(getInterface());
         MethodInvokeAdvice advice = new MethodInvokeAdvice(interfaceName, connection, getRoutingKey(), codec, getTtl(), getDestination());
         advice.setCommunicationMode(communicationMode);
         advice.setDelayTimeLevel(delayTimeLevel);
@@ -94,5 +94,13 @@ public class PublishFactoryBean implements FactoryBean, InitializingBean, BeanCl
     @Override
     public void setBeanClassLoader(ClassLoader classLoader) {
         this.classLoader = classLoader;
+    }
+
+    public Class<?> getInterface() {
+        return interfaze;
+    }
+
+    public void setInterface(Class<?> interfaze) {
+        this.interfaze = interfaze;
     }
 }

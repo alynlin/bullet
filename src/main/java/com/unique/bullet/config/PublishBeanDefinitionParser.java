@@ -118,7 +118,7 @@ public class PublishBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
         for (int i = 0; i < childNodes.getLength(); i++) {
             Node child = childNodes.item(i);
             if (child.getNodeType() == Node.ELEMENT_NODE) {
-                String localName = parserContext.getDelegate().getLocalName(child);
+                String localName = child.getLocalName();
                 if (FILTER_PROP_ELEMENT.equals(localName)) {
                     builder.addPropertyValue(FILTER_PROP_ATTRIBUTE, parseMessageProperty((Element) child, element, parserContext));
                     break;

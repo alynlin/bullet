@@ -21,6 +21,10 @@
     <bullet:listener-container id="listener-container" message-model="CLUSTERING" group="inf_bullet_group_clustering"
                                namesrv-domain="127.0.0.1:8080/app-acms-server" maxReconsumeTimes="1">
         <bullet:listener interface="com.unique.bullet.service.IService" ref="serviceImpl" destination="inf_bullet_test"/>
+    </bullet:listener-container>
+
+    <bullet:listener-container id="listener-filter" message-model="CLUSTERING" group="inf_bullet_group_filter"
+                               namesrv-domain="127.0.0.1:8080/app-acms-server">
         <bullet:listener interface="com.unique.bullet.service.IService" ref="serviceImpl" selector="bullet_userName='unique' AND bullet_userAge &lt;=100" destination="inf_bullet_test_filter"></bullet:listener>
     </bullet:listener-container>
 

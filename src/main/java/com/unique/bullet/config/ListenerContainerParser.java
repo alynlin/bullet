@@ -5,6 +5,7 @@ import com.unique.bullet.exception.BulletException;
 import com.unique.bullet.listener.ListenerFactoryBean;
 import com.unique.bullet.listener.MessageListenerAdapter;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.PropertyValue;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.config.TypedStringValue;
@@ -116,16 +117,22 @@ public class ListenerContainerParser extends AbstractSingleBeanDefinitionParser 
         ManagedList listeners = new ManagedList(childNodes.getLength());
         listeners.setSource(parserContext.extractSource(element));
         listeners.setMergeEnabled(Boolean.TRUE);
+        int listenerSize = 1;
         for (int i = 0; i < childNodes.getLength(); i++) {
             Node child = childNodes.item(i);
             if (child.getNodeType() == Node.ELEMENT_NODE) {
-                String localName = parserContext.getDelegate().getLocalName(child);
+                String localName = child.getLocalName();
                 if (LISTENER_ELEMENT.equals(localName)) {
+                    if (listenerSize > 1) {
+                        //限制消费组下，只能订阅一个topic
+                        throw new BulletException("<bullet:listener-container> can only contain one listener");
+                    }
                     listeners.add(parseListener((Element) child, element, parserContext));
+                    listenerSize++;
                 }
             }
         }
-        beanDefinition.getPropertyValues().add("messageListener", listeners);
+        beanDefinition.getPropertyValues().addPropertyValue(new PropertyValue("messageListener", listeners));
     }
 
     private BeanDefinition parseListener(Element listenerEle, Element containerEle, ParserContext parserContext) {
@@ -142,13 +149,13 @@ public class ListenerContainerParser extends AbstractSingleBeanDefinitionParser 
         } catch (ClassNotFoundException e) {
             throw new BulletException(e);
         }
-        listenerDef.getPropertyValues().add(INTERFACE_ATTRIBUTE, interfaze);
+        listenerDef.getPropertyValues().addPropertyValue(new PropertyValue(INTERFACE_ATTRIBUTE, interfaze));
 
         String ref = listenerEle.getAttribute(REF_ATTRIBUTE);
         if (StringUtils.isAnyEmpty(ref)) {
             parserContext.getReaderContext().error("Listener 'ref' attribute contains empty value.", listenerEle);
         } else {
-            listenerDef.getPropertyValues().add("delegate", new RuntimeBeanReference(ref));
+            listenerDef.getPropertyValues().addPropertyValue(new PropertyValue("delegate", new RuntimeBeanReference(ref)));
         }
 
         //topic 主题名称
@@ -156,19 +163,19 @@ public class ListenerContainerParser extends AbstractSingleBeanDefinitionParser 
         if (StringUtils.isAnyEmpty(destination)) {
             parserContext.getReaderContext().error("Listener 'destination' attribute contains empty value.", listenerEle);
         } else {
-            listenerDef.getPropertyValues().add(DESTINATION_ATTRIBUTE, destination);
+            listenerDef.getPropertyValues().addPropertyValue(new PropertyValue(DESTINATION_ATTRIBUTE, destination));
         }
 
         String routingKey = listenerEle.getAttribute(ROUTINGKEY_ATTRIBUTE);
         if (StringUtils.isAnyEmpty(routingKey)) {
             routingKey = "*";
         } else {
-            listenerDef.getPropertyValues().add(ROUTINGKEY_ATTRIBUTE, routingKey);
+            listenerDef.getPropertyValues().addPropertyValue(new PropertyValue(ROUTINGKEY_ATTRIBUTE, routingKey));
         }
 
         String selector = listenerEle.getAttribute(SELECTOR_ATTRIBUTE);
         if (!StringUtils.isAnyEmpty(selector)) {
-            listenerDef.getPropertyValues().add(SELECTOR_ATTRIBUTE, selector);
+            listenerDef.getPropertyValues().addPropertyValue(new PropertyValue(SELECTOR_ATTRIBUTE, selector));
         }
 
         return listenerDef;

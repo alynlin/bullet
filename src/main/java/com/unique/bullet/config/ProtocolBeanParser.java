@@ -6,6 +6,7 @@ import com.unique.bullet.exception.BulletException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
@@ -56,11 +57,11 @@ public class ProtocolBeanParser extends AbstractSingleBeanDefinitionParser {
 
         String namesrvDdomain = element.getAttribute(NAMESRV_DOMAIN_ELEMENT);
         if (StringUtils.isNoneEmpty(namesrvDdomain)) {
-            System.setProperty("rocketmq.namesrv.domain", namesrvDdomain);
+            builder.addPropertyValue("namesrvDdomain", new TypedStringValue(namesrvDdomain));
         }
         String namesrvDomainSubgroup = element.getAttribute(NAMESRV_DOMAIN_SUBGROUP_ELEMENT);
         if (StringUtils.isNoneEmpty(namesrvDomainSubgroup)) {
-            System.setProperty("rocketmq.namesrv.domain.subgroup", namesrvDomainSubgroup);
+            builder.addPropertyValue("namesrvDomainSubgroup", new TypedStringValue(namesrvDomainSubgroup));
         }
     }
 }
